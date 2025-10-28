@@ -1,0 +1,254 @@
+/* ===========================
+   Global Styles & Variables
+=========================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #00878d;
+    --secondary-color: #0cc0df;
+    --accent-color: #fd8d3c;
+    --text-color: #333;
+    --bg-color: #f8f9fa;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+/* ===========================
+   Navbar Styles
+=========================== */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    background-color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+.navbar-brand img {
+    height: 50px;
+}
+
+.navbar .form-control {
+    width: 300px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.navbar .btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.navbar .btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+
+/* ===========================
+   Sidebar Styles
+=========================== */
+.sidebar {
+    position: sticky;
+    top: 70px;
+    width: 220px;
+    padding-top: 10px;
+    background-color: #fff;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    z-index: 1020;
+}
+
+.sidebar a {
+    color: #555;
+    padding: 12px 20px;
+    display: block;
+    margin: 5px 0;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.sidebar a:hover {
+    background-color: #f1f1f1;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+/* ===========================
+   Content Styles
+=========================== */
+.content {
+    margin-left: 220px;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+/* ===========================
+   Typography
+=========================== */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+p {
+    font-size: 1rem;
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: var(--secondary-color);
+}
+
+/* ===========================
+   Footer Styles
+=========================== */
+footer {
+    background-color: #333;
+    color: #fff;
+    padding: 40px 0;
+    margin-top: 50px;
+    text-align: center;
+}
+
+footer a {
+    color: #ccc;
+    margin: 0 10px;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+footer a:hover {
+    color: var(--primary-color);
+}
+
+
+/* Card image styling */
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+/* Card styling */
+.card {
+    border-radius: 0.5rem;
+}
+
+/* Button hover effect */
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+
+/* ===========================
+   Responsive Styles
+=========================== */
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 180px;
+    }
+
+    .content {
+        margin-left: 180px;
+    }
+
+    .navbar .form-control {
+        width: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px;
+    }
+
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+
+    .navbar .form-control {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .sidebar {
+        width: 100%;
+        position: relative;
+        box-shadow: none;
+    }
+
+    .content {
+        margin-left: 0;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand img {
+        height: 40px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    h2 {
+        font-size: 1.25rem;
+    }
+
+    h3 {
+        font-size: 1.125rem;
+    }
+
+    p, footer p {
+        font-size: 0.9rem;
+    }
+
+    footer {
+        padding: 20px;
+    }
+}
+
+/* Adjust main content spacing for smaller screens */
+.main-content {
+    padding-top: calc(70px + 1rem); /* Account for navbar height */
+}
+
+@media (max-width: 576px) {
+    .main-content {
+        padding-top: calc(70px + 1.5rem);
+        margin-top: 80px;
+    }
+
+}
+

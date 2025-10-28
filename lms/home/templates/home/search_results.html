@@ -1,0 +1,35 @@
+{% extends 'home/base.html' %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>Search Results for "{{ request.GET.q }}"</h2>
+        
+        {% if results.courses or results.quizzes %}
+            <h3>Courses</h3>
+            {% if results.courses %}
+                <ul>
+                    {% for course in results.courses %}
+                        <li><a href="{% url 'course_detail' course.pk %}">{{ course.title }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No matching courses found.</p>
+            {% endif %}
+
+            <h3>Quizzes</h3>
+            {% if results.quizzes %}
+                <ul>
+                    {% for quiz in results.quizzes %}
+                        <li>{{ quiz.title }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No matching quizzes found.</p>
+            {% endif %}
+        {% else %}
+            <p>No results found for your search.</p>
+        {% endif %}
+    </div>
+{% endblock %}

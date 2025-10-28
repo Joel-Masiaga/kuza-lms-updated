@@ -1,0 +1,586 @@
+{% extends 'home/base.html' %}
+{% load static %}
+{% load custom_filters %} {# Make sure this templatetag exists and works #}
+
+{% block title %}{{ lesson.title }} - {{ lesson.module.course.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Notes panel animation */
+    #notes-panel {
+        max-height: 0;
+        transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
+    /* When inserted and opened we add notes-open to animate */
+    #notes-panel.notes-open {
+        max-height: 18rem; /* visible height */
+    }
+    @media (min-width: 768px) {
+        #notes-panel.notes-open { max-height: 14rem; }
+    }
+
+    /* small visual polish so inserted panel doesn't cause layout jump */
+    .notes-inner { padding: 0.75rem 1rem; }
+    .notes-textarea { min-height: 6rem; }
+
+
+    .pdf-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pdf-controls button {
+  transition: background 0.2s ease;
+}
+.pdf-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive tweak for small screens */
+@media (max-width: 480px) {
+  .pdf-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pdf-controls > div {
+    justify-content: center;
+  }
+}
+
+
+    /* PDF canvas container */
+#pdf-canvas-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
+  background: #f9fafb;
+  border-radius: 0.75rem;
+  padding: 0.5rem;
+}
+
+/* PDF canvas itself */
+#pdf-canvas {
+  display: block;
+  max-width: 100%;
+  height: auto !important; /* Maintain aspect ratio */
+  margin: 0 auto;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Mobile optimization */
+@media (max-width: 640px) {
+  #pdf-canvas-wrap {
+    padding: 0.25rem;
+  }
+
+  #pdf-canvas {
+    width: 100% !important;
+    max-height: calc(100vh - 200px); /* avoid overflow below navbar */
+    object-fit: contain;
+  }
+}
+
+    
+</style>
+{% endblock %}
+
+{% block show_mobile_l2_toggle %} {% comment %} Make menu button visible {% endcomment %} {% endblock %}
+
+{% block content %}
+<div class="flex flex-1 overflow-hidden pb-10">
+    <aside id="lessonSidebar" class="bg-gray-50 dark:bg-gray-800 w-72 flex-shrink-0 flex flex-col shadow-lg z-30 absolute inset-y-0 left-0 pt-16 md:pt-0 transform -translate-x-full md:static md:translate-x-0 transition-transform duration-300 h-full">
+        <div class="flex items-center justify-between p-4 md:hidden border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white truncate" title="{{ lesson.module.course.title }}">{{ lesson.module.course.title }}</h2>
+            <button id="closeL2Sidebar" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded-md p-1"><i class="fas fa-times text-lg"></i></button>
+        </div>
+        <div class="hidden md:flex items-center justify-between p-4 h-16 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white truncate" title="{{ lesson.module.course.title }}">Course Content</h2>
+        </div>
+        <div id="lessonSidebarContent" class="flex-grow overflow-y-auto p-4">
+            <div class="mb-6">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ progress_percentage|default:0|floatformat:0 }}% completed</span>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-2"><div id="course-progress-bar" class="bg-primary h-2.5 rounded-full transition-all" style="width: {{ progress_percentage|default:0 }}%"></div></div>
+            </div>
+            <ul id="modules-container" class="space-y-4">
+                {% for module_item in all_course_modules %}
+                <li>
+                    <div class="module-accordion-trigger flex items-center justify-between mb-2 p-3 {% if module_item.id == lesson.module.id %}bg-primary-light dark:bg-primary-dark{% else %}bg-gray-200 dark:bg-gray-700{% endif %} rounded-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800"
+                         tabindex="0" role="button"
+                         {% if module_item.id == lesson.module.id %} aria-expanded="true" {% else %} aria-expanded="false" {% endif %}
+                         aria-controls="module-{{ module_item.id }}"
+                         data-controls="module-{{ module_item.id }}">
+                        <span class="font-semibold {% if module_item.id == lesson.module.id %}text-primary-darker dark:text-white{% else %}text-gray-900 dark:text-white{% endif %}">{{ module_item.title }}</span>
+                        <i class="accordion-icon fas {% if module_item.id == lesson.module.id %}fa-chevron-up{% else %}fa-chevron-down{% endif %} text-gray-500 dark:text-gray-400 text-sm"></i>
+                    </div>
+                    <ul id="module-{{ module_item.id }}" class="module-accordion-content space-y-2 {% if not module_item.id == lesson.module.id %}hidden{% endif %}">
+                        {% for lesson_item in module_item.lessons.all %}
+                            <li>
+                                <a href="{% url 'lesson_detail' lesson_item.pk %}"
+                                   class="lesson-link flex items-center justify-between p-3 rounded-lg {% if lesson_item.id == lesson.id %}bg-white dark:bg-gray-900 border border-primary shadow-sm{% else %}hover:bg-gray-200 dark:hover:bg-gray-700{% endif %} transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 group"
+                                   data-lesson-id="{{ lesson_item.id }}" data-module-id="{{ module_item.id }}">
+                                    <div class="flex items-center truncate">
+                                        <span class="flex items-center justify-center h-10 w-10 rounded-lg {% if lesson_item.id == lesson.id %}bg-primary-light dark:bg-primary-dark{% else %}bg-gray-200 dark:bg-gray-700{% endif %} flex-shrink-0">
+                                            {# Icon depends on lesson type #}
+                                            {% if lesson_item.videos.exists %}
+                                                <i class="fas fa-video {% if lesson_item.id == lesson.id %}text-primary-darker dark:text-primary-light{% else %}text-gray-600 dark:text-gray-300{% endif %}"></i>
+                                            {% elif lesson_item.pdf_file %}
+                                                <i class="fas fa-file-pdf {% if lesson_item.id == lesson.id %}text-primary-darker dark:text-primary-light{% else %}text-gray-600 dark:text-gray-300{% endif %}"></i>
+                                            {% else %}
+                                                <i class="fas fa-file-alt {% if lesson_item.id == lesson.id %}text-primary-darker dark:text-primary-light{% else %}text-gray-600 dark:text-gray-300{% endif %}"></i>
+                                            {% endif %}
+                                        </span>
+                                        <div class="ml-3 truncate">
+                                            <span class="block font-medium text-sm {% if lesson_item.id == lesson.id %}text-primary{% else %}text-gray-800 dark:text-gray-300{% endif %} truncate group-hover:text-primary dark:group-hover:text-primary-light transition-colors">{{ lesson_item.title }}</span>
+                                            <span class="block text-xs text-gray-500 dark:text-gray-400">Est. 5:00</span>
+                                        </div>
+                                    </div>
+                                    {% if lesson_item.id in read_lesson_ids %}
+                                        <i class="fas fa-check-circle text-green-500"></i>
+                                    {% else %}
+                                        <i class="far fa-circle text-gray-400 dark:text-gray-500"></i>
+                                    {% endif %}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% empty %}
+                <li class="text-gray-500 dark:text-gray-400 italic">Course has no modules.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </aside>
+
+    <div id="content-notes-container" class="flex-1 flex flex-col overflow-hidden">
+        <main id="main-content" class="flex-1 overflow-y-auto p-4 sm:p-8 relative bg-white dark:bg-gray-900">
+            <nav id="breadcrumb-nav" class="max-w-5xl mx-auto mb-6" aria-label="Breadcrumb">
+                <ol class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+                    <li><a href="{% url 'home' %}" class="hover:text-gray-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-1"><i class="fas fa-home"></i></a></li>
+                    <li><i class="fas fa-chevron-right text-xs text-gray-400 dark:text-gray-500"></i></li>
+                    <li><a href="{% url 'courses' %}" class="hover:text-gray-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-1">{{ lesson.module.course.title }}</a></li>
+                    <li><i class="fas fa-chevron-right text-xs text-gray-400 dark:text-gray-500"></i></li>
+                    <li><span class="font-medium text-gray-800 dark:text-white p-1">{{ lesson.title }}</span></li>
+                </ol>
+            </nav>
+            <div id="lesson-content-wrapper" class="max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden">
+                <div class="p-6 sm:p-8 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white">{{ lesson.title }}</h1>
+                        <div class="flex-shrink-0 flex flex-wrap gap-2">
+                            <form method="POST" action="{% url 'lesson_detail' lesson.pk %}">
+                                {% csrf_token %}
+                                {% if lesson.id in read_lesson_ids %}
+                                    <button type="submit" name="unmark_read" data-action="toggle-complete" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-gray-800 dark:text-gray-100 font-medium py-2 px-4 rounded-lg flex items-center transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800">
+                                        <i class="fas fa-times mr-2"></i> Mark as Incomplete
+                                    </button>
+                                {% else %}
+                                    <button type="submit" name="mark_read" data-action="toggle-complete" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800">
+                                        <i class="fas fa-check mr-2"></i> Mark as Complete
+                                    </button>
+                                {% endif %}
+                            </form>
+                            <button id="toggle-notes-btn" aria-expanded="false" class="text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 font-medium py-2 px-4 rounded-lg flex items-center transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800">
+                                <i class="fas fa-sticky-note mr-2"></i> Notes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 sm:p-8 prose dark:prose-invert max-w-none">
+                    {% if lesson.image_content %}
+                        <img src="{{ lesson.image_content.url }}" class="w-full rounded-lg shadow-md mb-6 max-h-96 object-contain mx-auto" alt="{{ lesson.title }}">
+                    {% endif %}
+                    {% if lesson.description %}
+                        <p class="text-gray-700 dark:text-gray-300 mb-6 italic bg-gray-100 dark:bg-gray-700 p-4 rounded-lg not-prose">📝 {{ lesson.description|safe }}</p>
+                    {% endif %}
+
+                    {% if lesson.objectives %}
+                        <h5 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white not-prose">🎯 Learning Objectives</h5>
+                        <ul class="list-disc pl-6 text-gray-800 dark:text-gray-200 mb-6 space-y-2">
+                            {% for objective in lesson.objectives.splitlines %}
+                                <li>{{ objective|safe }}</li>
+                            {% endfor %}
+                        </ul>
+                        <hr class="border-gray-200 dark:border-gray-700 my-6">
+                    {% endif %}
+
+                    {% if lesson.content %}
+                        <h5 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white not-prose">📖 Lesson Content</h5>
+                        <div class="text-gray-800 dark:text-gray-200 leading-relaxed">{{ lesson.content|safe }}</div>
+                        <hr class="border-gray-200 dark:border-gray-700 my-6">
+                    {% endif %}
+
+                    {# Video block (existing) #}
+                    {% if lesson.videos.exists %}
+                        <h5 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white not-prose">🎥 Watch Videos</h5>
+                        {% for video in lesson.videos.all %}
+                            <p class="font-medium text-gray-800 dark:text-gray-100">{{ video.title }}</p>
+                            <div class="relative aspect-video mb-6 bg-gray-200 dark:bg-black rounded-lg overflow-hidden">
+                                {% with video.video_url|extract_video_id as video_id %}
+                                    {% if video_id %}
+                                        <iframe src="https://www.youtube.com/embed/{{ video_id }}" allowfullscreen class="absolute top-0 left-0 w-full h-full"></iframe>
+                                    {% else %}
+                                        <p class="p-4 text-red-600">Could not extract video ID from URL: {{ video.video_url }}</p>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        {% endfor %}
+                        <hr class="border-gray-200 dark:border-gray-700 my-6">
+                    {% endif %}
+
+                    {# PDF viewer block: page-by-page rendering with PDF.js (no direct download link) #}
+                    {% if lesson.pdf_file %}
+                        <h5 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white not-prose">📄 PDF</h5>
+                        <div class="pdf-controls flex flex-wrap items-center justify-between gap-2 mb-3 text-gray-800 dark:text-gray-200">
+  <div class="flex items-center flex-wrap gap-2">
+    <button id="pdf-prev" title="Previous page" class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200">Prev</button>
+    <button id="pdf-next" title="Next page" class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200">Next</button>
+
+    <span class="text-sm">Page <strong id="pdf-page-num">1</strong> / <strong id="pdf-page-count">19</strong></span>
+
+    <input id="pdf-page-input" type="number" min="1" value="1"
+      class="w-16 px-2 py-1 text-center border border-gray-300 rounded text-sm" aria-label="Jump to page">
+    <button id="pdf-go" title="Go to page" class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200">Go</button>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <button id="pdf-zoom-out" title="Zoom out" class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200">−</button>
+    <button id="pdf-zoom-in" title="Zoom in" class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200">+</button>
+  </div>
+</div>
+
+
+                                    <div class="flex justify-center items-center my-4">
+                            <div id="pdf-canvas-wrap" class="rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 p-2 sm:p-4">
+                                <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
+                            </div>
+                            </div>
+
+
+
+
+
+                        </div>
+                        <hr class="border-gray-200 dark:border-gray-700 my-6">
+                    {% endif %}
+
+                    {% if lesson.additional_materials.exists %}
+                        <h5 class="mb-4 ml-6 text-xl font-semibold text-gray-900 dark:text-white not-prose">📎 Additional Materials</h5>
+                        <div class="flex flex-wrap gap-3">
+                        {% for material in lesson.additional_materials.all %}
+                            <a href="{{ material.material_url }}" target="_blank" class="inline-block px-4 py-2 ml-6 bg-green-500 text-white rounded-md shadow hover:bg-green-600 transition duration-300 mb-2 text-sm no-underline">
+                                <i class="fas fa-link mr-1"></i> {{ material.title }}
+                            </a>
+                        {% endfor %}
+                        </div>
+                        <hr class="border-gray-200 dark:border-gray-700 my-6">
+                    {% endif %}
+                </div>
+
+                <div class="flex justify-between mt-0 p-6 sm:p-8 border-t border-gray-200 dark:border-gray-700">
+                    {% if previous_lesson %}
+                    <a href="{% url 'lesson_detail' previous_lesson.pk %}" id="prev-lesson-btn" class="flex items-center text-primary hover:text-primary-dark font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-2">
+                        <i class="fas fa-chevron-left mr-2"></i> Previous
+                    </a>
+                    {% else %}
+                    <button id="prev-lesson-btn" class="flex items-center text-gray-400 dark:text-gray-600 font-semibold cursor-not-allowed p-2" disabled>
+                        <i class="fas fa-chevron-left mr-2"></i> Previous
+                    </button>
+                    {% endif %}
+
+                    {% if next_lesson %}
+                    <a href="{% url 'lesson_detail' next_lesson.pk %}" id="next-lesson-btn" class="flex items-center text-primary hover:text-primary-dark font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-2">
+                        Next Lesson <i class="fas fa-chevron-right ml-2"></i>
+                    </a>
+                    {% else %}
+                        {% with quiz=lesson.module.quizzes.first %}
+                            {% if quiz %}
+                                <a href="{% url 'quiz_detail' quiz.id %}" id="next-lesson-btn" class="flex items-center bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded p-2 px-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-yellow-500 dark:focus-visible:ring-offset-gray-800">
+                                    Take Quiz <i class="fas fa-question-circle ml-2"></i>
+                                </a>
+                            {% else %}
+                                <button id="next-lesson-btn" class="flex items-center text-gray-400 dark:text-gray-600 font-semibold cursor-not-allowed p-2" disabled>
+                                    Next Lesson <i class="fas fa-chevron-right ml-2"></i>
+                                </button>
+                            {% endif %}
+                        {% endwith %}
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+<script>
+    // Helper to read csrftoken from cookies
+    function getCookie(name) {
+        const v = document.cookie.split('; ').find(r => r.startsWith(name + '='));
+        return v ? decodeURIComponent(v.split('=')[1]) : null;
+    }
+
+    // initial server-provided note content (escaped for JS)
+    const INITIAL_NOTE_CONTENT = "{{ note.content|default:''|escapejs }}";
+
+    // Accordion helper
+    function toggleAccordion(contentId, triggerElement) {
+        const contentElement = document.getElementById(contentId);
+        const iconElement = triggerElement ? triggerElement.querySelector('.accordion-icon') : null;
+        if (!contentElement || !triggerElement || !iconElement) return;
+        const isHidden = contentElement.classList.contains('hidden');
+        contentElement.classList.toggle('hidden');
+        iconElement.classList.toggle('fa-chevron-up', !isHidden);
+        iconElement.classList.toggle('fa-chevron-down', isHidden);
+        triggerElement.setAttribute('aria-expanded', String(!isHidden));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Accordions
+        const currentModuleId = 'module-{{ lesson.module.id }}';
+        document.querySelectorAll('.module-accordion-trigger').forEach(trigger => {
+            const contentId = trigger.getAttribute('aria-controls');
+            const icon = trigger.querySelector('.accordion-icon');
+            const contentElement = document.getElementById(contentId);
+
+            if (contentId === currentModuleId) {
+                contentElement && contentElement.classList.remove('hidden');
+                icon && icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+                trigger.setAttribute('aria-expanded', 'true');
+            } else {
+                contentElement && contentElement.classList.add('hidden');
+                icon && icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+
+            trigger.addEventListener('click', () => toggleAccordion(contentId, trigger));
+            trigger.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAccordion(contentId, trigger); }
+            });
+        });
+
+        // Notes panel logic
+        const toggleNotesBtn = document.getElementById('toggle-notes-btn');
+        const mainContainer = document.getElementById('content-notes-container');
+        let notesPanelEl = null;
+        const lessonUrl = "{% url 'lesson_detail' lesson.pk %}";
+
+        function createNotesPanel() {
+            const section = document.createElement('section');
+            section.id = 'notes-panel';
+            section.className = 'flex-shrink-0 bg-white dark:bg-gray-800 shadow-inner border-t border-gray-200 dark:border-gray-700 z-10';
+            section.setAttribute('aria-hidden', 'true');
+            section.innerHTML = `
+                <div class="notes-inner px-4 sm:px-8 pt-3 pb-16">
+                    <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-2">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white">Notes</h2>
+                        <button id="notes-close-btn" aria-label="Close notes" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white focus:outline-none rounded-full w-8 h-8 flex items-center justify-center"><i class="fas fa-times text-lg"></i></button>
+                    </div>
+
+                    <div class="pt-3 flex flex-col">
+                        <textarea id="notes-textarea" class="w-full notes-textarea p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary focus:border-primary resize-none" placeholder="Add notes for this lesson..."></textarea>
+                        <div class="flex justify-end items-center mt-2">
+                            <span id="notes-char-count" class="text-sm text-gray-500 mr-4">0 / 1000</span>
+                            <button id="notes-save-btn" class="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-6 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800">Save</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return section;
+        }
+
+        function attachNotesBehavior(panel) {
+            const closeBtn = panel.querySelector('#notes-close-btn');
+            const textarea = panel.querySelector('#notes-textarea');
+            const charCount = panel.querySelector('#notes-char-count');
+            const saveBtn = panel.querySelector('#notes-save-btn');
+
+            textarea.value = INITIAL_NOTE_CONTENT || '';
+            charCount.textContent = `${textarea.value.length} / 1000`;
+            charCount.classList.toggle('text-red-500', textarea.value.length > 1000);
+
+            textarea.addEventListener('input', () => {
+                const len = textarea.value.length;
+                charCount.textContent = `${len} / 1000`;
+                charCount.classList.toggle('text-red-500', len > 1000);
+            });
+
+            closeBtn.addEventListener('click', (e) => { e.preventDefault(); closeNotesPanel(); });
+
+            saveBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                saveBtn.disabled = true;
+                const prevText = saveBtn.textContent;
+                saveBtn.textContent = 'Saving...';
+                const csrftoken = getCookie('csrftoken');
+                try {
+                    const resp = await fetch(lessonUrl, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                            'X-CSRFToken': csrftoken || ''
+                        },
+                        body: new URLSearchParams({ save_note: '1', note_content: textarea.value }).toString()
+                    });
+                    if (resp.ok) {
+                        INITIAL_NOTE_CONTENT = textarea.value;
+                        saveBtn.textContent = 'Saved';
+                    } else {
+                        saveBtn.textContent = 'Save (failed)';
+                    }
+                } catch (err) {
+                    console.error('Note save error', err);
+                } finally {
+                    setTimeout(() => { saveBtn.textContent = prevText; saveBtn.disabled = false; }, 800);
+                }
+            });
+        }
+
+        function openNotesPanel() {
+            if (notesPanelEl) return;
+            notesPanelEl = createNotesPanel();
+            mainContainer.appendChild(notesPanelEl);
+            requestAnimationFrame(() => {
+                notesPanelEl.classList.add('notes-open');
+                notesPanelEl.setAttribute('aria-hidden', 'false');
+            });
+            attachNotesBehavior(notesPanelEl);
+            setTimeout(() => { const ta = notesPanelEl.querySelector('#notes-textarea'); ta && ta.focus({ preventScroll: true }); }, 200);
+        }
+
+        function closeNotesPanel() {
+            if (!notesPanelEl) return;
+            notesPanelEl.classList.remove('notes-open');
+            notesPanelEl.setAttribute('aria-hidden', 'true');
+            const el = notesPanelEl;
+            const onTransitionEnd = (ev) => {
+                if (ev.propertyName === 'max-height') {
+                    el.removeEventListener('transitionend', onTransitionEnd);
+                    if (el.parentNode) el.parentNode.removeChild(el);
+                    notesPanelEl = null;
+                }
+            };
+            el.addEventListener('transitionend', onTransitionEnd);
+            setTimeout(() => { if (notesPanelEl === el) { el.remove(); notesPanelEl = null; } }, 420);
+            toggleNotesBtn && toggleNotesBtn.focus({ preventScroll: true });
+        }
+
+        toggleNotesBtn && toggleNotesBtn.addEventListener('click', (e) => { e.preventDefault(); if (notesPanelEl) closeNotesPanel(); else openNotesPanel(); });
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'n' && !/input|textarea/i.test(document.activeElement.tagName)) {
+                e.preventDefault();
+                if (notesPanelEl) closeNotesPanel(); else openNotesPanel();
+            }
+        });
+
+        // PDF viewer init (only if lesson has pdf_file)
+        {% if lesson.pdf_file %}
+        (function initPdfViewer(){
+            if (!window.pdfjsLib) { console.warn('pdfjsLib not loaded'); return; }
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+            const pdfUrl = "{{ lesson.pdf_file.url }}";
+            const canvas = document.getElementById('pdf-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const pageNumEl = document.getElementById('pdf-page-num');
+            const pageCountEl = document.getElementById('pdf-page-count');
+            const pageInput = document.getElementById('pdf-page-input');
+            const prevBtn = document.getElementById('pdf-prev');
+            const nextBtn = document.getElementById('pdf-next');
+            const goBtn = document.getElementById('pdf-go');
+            const zoomIn = document.getElementById('pdf-zoom-in');
+            const zoomOut = document.getElementById('pdf-zoom-out');
+            const wrap = document.getElementById('pdf-canvas-wrap');
+
+            let pdfDoc = null;
+            let currentPage = 1;
+            let scale = 1.0;
+            const SCALE_STEP = 0.15;
+            const MIN_SCALE = 0.5;
+            const MAX_SCALE = 2.5;
+            const DPR = window.devicePixelRatio || 1;
+
+            function renderPage(num) {
+                pdfDoc.getPage(num).then(page => {
+                    const viewport = page.getViewport({ scale: scale });
+                    canvas.width = Math.floor(viewport.width * DPR);
+                    canvas.height = Math.floor(viewport.height * DPR);
+                    canvas.style.width = `${Math.floor(viewport.width)}px`;
+                    canvas.style.height = `${Math.floor(viewport.height)}px`;
+                    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    const renderCtx = { canvasContext: ctx, viewport: viewport, intent: 'display' };
+                    page.render(renderCtx).promise.then(() => {
+                        pageNumEl.textContent = currentPage;
+                        pageInput.value = currentPage;
+                        prevBtn.disabled = currentPage <= 1;
+                        nextBtn.disabled = currentPage >= pdfDoc.numPages;
+                    });
+                }).catch(err => {
+                    console.error('Error rendering PDF page', err);
+                    wrap.innerHTML = '<div class="p-4 text-red-600">Unable to render PDF page.</div>';
+                });
+            }
+
+            function queueRenderPage(num) {
+                if (!pdfDoc) return;
+                if (num < 1) num = 1;
+                if (num > pdfDoc.numPages) num = pdfDoc.numPages;
+                currentPage = num;
+                renderPage(currentPage);
+            }
+
+            // load as arrayBuffer (reduces casual direct exposure)
+            fetch(pdfUrl, { credentials: 'same-origin' })
+                .then(res => { if (!res.ok) throw new Error('Could not fetch PDF'); return res.arrayBuffer(); })
+                .then(buffer => pdfjsLib.getDocument({ data: buffer }).promise)
+                .then(doc => { pdfDoc = doc; pageCountEl.textContent = pdfDoc.numPages; queueRenderPage(1); })
+                .catch(err => { console.error('Failed to load PDF', err); wrap.innerHTML = '<div class="p-4 text-red-600">Unable to load PDF preview.</div>'; });
+
+            // controls
+            prevBtn.addEventListener('click', ()=> queueRenderPage(currentPage - 1));
+            nextBtn.addEventListener('click', ()=> queueRenderPage(currentPage + 1));
+            goBtn.addEventListener('click', ()=> { const val = parseInt(pageInput.value, 10); if (!isNaN(val)) queueRenderPage(val); });
+            pageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); goBtn.click(); } });
+
+            zoomIn && zoomIn.addEventListener('click', ()=> { scale = Math.min(MAX_SCALE, +(scale + SCALE_STEP).toFixed(2)); queueRenderPage(currentPage); });
+            zoomOut && zoomOut.addEventListener('click', ()=> { scale = Math.max(MIN_SCALE, +(scale - SCALE_STEP).toFixed(2)); queueRenderPage(currentPage); });
+
+            // prevent right-click/context and simple copy attempts on viewer area
+            const viewerEl = document.getElementById('pdf-viewer');
+            viewerEl && viewerEl.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            // keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (/input|textarea/i.test(document.activeElement.tagName)) return;
+                if (e.key === 'ArrowLeft') { e.preventDefault(); prevBtn.click(); }
+                if (e.key === 'ArrowRight') { e.preventDefault(); nextBtn.click(); }
+                if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomIn && zoomIn.click(); }
+                if (e.key === '-') { e.preventDefault(); zoomOut && zoomOut.click(); }
+            });
+
+            // touch swipe
+            let touchStartX = 0;
+            wrap.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].clientX; }, {passive:true});
+            wrap.addEventListener('touchend', (e) => {
+                const dx = e.changedTouches[0].clientX - touchStartX;
+                if (Math.abs(dx) > 50) { if (dx < 0) nextBtn.click(); else prevBtn.click(); }
+            }, {passive:true});
+        })();
+        {% endif %}
+    });
+</script>
+{% endblock %}

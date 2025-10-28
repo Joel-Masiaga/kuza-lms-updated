@@ -1,0 +1,150 @@
+{% load static %}
+{% load tailwind_tags %}
+{% load crispy_forms_tags %}
+{% load socialaccount %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% tailwind_css %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kuza Ndoto Academy | Login</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+ 
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#00878d',
+              '100': '#e0f2f2',
+              '200': '#b3dfdf',
+              '300': '#80cbcb',
+              '400': '#4db6b6',
+              '500': '#26a69a',
+              '600': '#00878d',
+              '700': '#00696d',
+              '800': '#004f52',
+              '900': '#00383b',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body {
+      background: url('https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=1920&q=80')
+        no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+  </style>
+</head>
+
+<body class="flex items-start sm:items-center justify-center min-h-screen p-4 py-10 sm:py-4 relative bg-gray-900">
+
+  <!-- Gradient & Floating Circles -->
+  <div class="absolute inset-0 bg-gradient-to-br from-brand-900/70 via-brand-700/60 to-cyan-900/70"></div>
+  <div class="absolute w-72 h-72 bg-brand/30 rounded-full blur-3xl top-10 left-10 animate-[float_6s_ease-in-out_infinite]"></div>
+  <div class="absolute w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl bottom-10 right-10 animate-[float_8s_ease-in-out_infinite]"></div>
+
+  <!-- Main Login Card -->
+  <main class="glass relative z-10 p-6 sm:p-8 rounded-2xl w-full max-w-md text-white">
+
+    <div class="text-center mb-6">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" class="w-14 sm:w-16 mx-auto mb-3" alt="Kuza Ndoto Logo">
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-wide">Kuza Ndoto Academy</h1>
+      <p class="text-brand-200 mt-2 text-sm uppercase tracking-widest">Your Gateway Into the Future</p>
+    </div>
+
+    <!-- Social Login Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4 mb-6">
+      <a href="{% provider_login_url 'google' %}"
+         class="w-full sm:flex-1 bg-none hover:bg-green-600 py-3 rounded-lg transition flex items-center justify-center space-x-3 shadow border border-gray-200 text-white"
+         aria-label="Sign in with Google">
+        <i class="fa-brands fa-google text-2xl px-4"></i>
+        <span class="font-semibold text-sm text-white">Sign in with Google</span>
+      </a>
+
+      <a href="#"
+         class="w-full sm:flex-1 bg-none hover:bg-green-600 py-3 rounded-lg transition flex items-center justify-center space-x-3 shadow border border-gray-200 text-white"
+         aria-label="Sign in with GitHub">
+        <i class="fa-brands fa-github text-2xl px-4"></i>
+        <span class="font-semibold text-sm text-white">Sign in with GitHub</span>
+      </a>
+    </div>
+
+    <!-- Divider -->
+    <div class="flex items-center mb-5 w-full">
+      <hr class="flex-1 h-px bg-gray-400/30 border-0">
+      <span class="mx-3 text-gray-300 text-sm text-center px-4">Or sign in manually</span>
+      <hr class="flex-1 h-px bg-gray-400/30 border-0">
+    </div>
+
+    <!-- Error Message -->
+    {% if form.errors %}
+    <div class="mb-4 p-3 text-sm text-red-500 bg-red-100/20 border border-red-500/30 rounded-md text-center">
+      Invalid login credentials. Please try again.
+    </div>
+    {% endif %}
+
+    <!-- Django Form -->
+    <form method="POST" class="space-y-6">
+      {% csrf_token %}
+      {{ form|crispy }}
+
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <input id="remember-me" name="remember-me" type="checkbox"
+                 class="h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded">
+          <label for="remember-me" class="ml-2 block text-sm text-gray-300">
+            Remember me
+          </label>
+        </div>
+        <div class="text-sm">
+          <a href="#" class="text-brand-300 hover:underline">
+            Forgot password?
+          </a>
+        </div>
+      </div>
+
+      <button type="submit"
+              class="w-full bg-green-600 py-2 rounded-lg hover:opacity-90 transition text-white font-semibold shadow-lg focus:outline-none focus:ring-2 focus:ring-brand-300 focus:ring-opacity-50">
+        Login
+      </button>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-gray-300">
+      Don’t have an account?
+      <a href="{% url 'register' %}" class="text-brand-300 hover:underline font-medium">Sign up</a>
+    </p>
+
+    <p class="mt-3 text-center text-sm text-gray-400">
+      Struggling to log in? <a href="#" class="text-brand-400 hover:underline">Click here</a>
+    </p>
+
+  </main>
+
+</body>
+</html>

@@ -1,0 +1,144 @@
+{% extends 'home/base.html' %}
+
+{% block title %}Quiz Results - {{ quiz.module.title }}{% endblock %}
+
+{% block content %}
+<main class="flex-1 px-4 py-4 pb-20 sm:p-6 overflow-y-auto">
+  <section class="max-w-3xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 sm:p-6 mb-6">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-primary font-semibold mb-1">Quiz Results</p>
+          <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+            <i class="fas fa-clipboard-check text-primary"></i>
+            {{ quiz.title }}
+          </h1>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Module: <span class="font-medium text-gray-800 dark:text-gray-200">{{ quiz.module.title }}</span>
+            • Course: <span class="font-medium text-gray-800 dark:text-gray-200">{{ quiz.module.course.title }}</span>
+          </p>
+        </div>
+        <a href="{% url 'course_detail' quiz.module.course.pk %}"
+           class="hidden sm:inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+          <i class="fas fa-arrow-left"></i> Back to Course
+        </a>
+      </div>
+
+      <!-- Summary -->
+      <div class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="col-span-1 sm:col-span-2 bg-gray-50 dark:bg-gray-700/40 rounded-md p-4">
+          <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+            <i class="fas fa-list-ol text-primary"></i>
+            Score
+          </div>
+          <div class="mt-1 text-2xl font-bold text-gray-800 dark:text-gray-100">
+            {{ score }} / {{ total_questions }}
+          </div>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-700/40 rounded-md p-4">
+          <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+            <i class="fas fa-percentage text-primary"></i>
+            Percentage
+          </div>
+          <div class="mt-1 text-2xl font-extrabold {% if passed %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+            {{ score_percentage|floatformat:2 }}%
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="mt-5">
+        <div class="flex items-center gap-2 text-base font-semibold {% if passed %}text-green-700 dark:text-green-300{% else %}text-red-700 dark:text-red-300{% endif %}">
+          {% if passed %}
+            <span aria-hidden="true">✅</span> You passed!
+          {% else %}
+            <span aria-hidden="true">❌</span> You did not pass. Review the module and attempt the quiz again.
+          {% endif %}
+        </div>
+        <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">{{ message }}</p>
+      </div>
+
+      <!-- Questions and your responses (view-only). Reveal correct answers only if passed -->
+      <div class="mt-6">
+        <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Questions and your responses</h2>
+        <ol class="space-y-4">
+          {% for item in question_results %}
+            <li class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-4">
+              <div class="flex items-start gap-3">
+                {% if item.is_correct == True %}
+                  <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-bold shrink-0" aria-hidden="true">✔</span>
+                {% elif item.is_correct == False %}
+                  <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-xs font-bold shrink-0" aria-hidden="true">✘</span>
+                {% else %}
+                  <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 text-xs font-bold shrink-0" aria-hidden="true">•</span>
+                {% endif %}
+
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-800 dark:text-gray-100">{{ item.question.question_text }}</p>
+
+                  <!-- Options rendered as disabled radios -->
+                  <ul class="mt-3 space-y-2">
+                    {% for opt in item.options %}
+                      <li class="flex items-start gap-2">
+                        <input type="radio" disabled class="mt-0.5 h-4 w-4 text-primary focus:ring-primary/50"
+                               {% if opt.id == item.selected_id %}checked{% endif %}>
+                        <div class="flex-1">
+                          <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-800 dark:text-gray-100">{{ opt.text }}</span>
+
+                            {% if opt.id == item.selected_id %}
+                              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Your answer</span>
+                            {% endif %}
+
+                            {% if show_marking_scheme and opt.is_correct %}
+                              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                                <i class="fas fa-check mr-1"></i> Correct
+                              </span>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </li>
+                    {% endfor %}
+                  </ul>
+
+                  {% if not show_marking_scheme and item.selected_answer_text %}
+                    <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                      You selected: <span class="font-medium">{{ item.selected_answer_text }}</span>
+                    </p>
+                  {% endif %}
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ol>
+      </div>
+
+      <!-- Actions -->
+      <div class="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <a href="{% url 'course_detail' quiz.module.course.pk %}"
+           class="inline-flex justify-center items-center gap-2 px-4 py-2.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+          <i class="fas fa-arrow-left"></i>
+          Back to Course
+        </a>
+
+        <div class="flex gap-3">
+          {% if passed %}
+            <a href="{{ continue_url }}"
+               class="inline-flex justify-center items-center gap-2 px-5 py-2.5 rounded-md bg-primary hover:bg-primary-dark text-white font-semibold transition">
+              <i class="fas fa-check-circle"></i>
+              Continue
+            </a>
+          {% else %}
+            <a href="{% url 'quiz_detail' quiz.id %}"
+               class="inline-flex justify-center items-center gap-2 px-5 py-2.5 rounded-md bg-primary hover:bg-primary-dark text-white font-semibold transition">
+              <i class="fas fa-redo"></i>
+              Retry Quiz
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

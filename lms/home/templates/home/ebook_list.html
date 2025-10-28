@@ -1,0 +1,86 @@
+{% extends "home/base.html" %}
+{% load static %}
+{% block title %}eBooks — Kuza Ndoto Academy{% endblock %}
+
+{% block content %}
+<main class="flex-1 p-6 overflow-y-auto">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-6 flex items-center justify-between">
+      <h2 class="text-2xl font-semibold">eBooks</h2>
+
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <!-- Categories -->
+      <aside class="col-span-1">
+        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+          <h3 class="font-semibold mb-3">Categories</h3>
+          <ul class="space-y-2 text-sm">
+            <li>
+              <a href="{% url 'ebook_list' %}" class="block px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 {% if not selected_category %}bg-primary-light text-primary{% endif %}">
+                All ({{ ebooks.count }})
+              </a>
+            </li>
+            {% for cat in categories %}
+              <li>
+                <a href="{% url 'ebook_list' %}?category={{ cat.slug }}"
+                   class="block px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 {% if selected_category and selected_category.id == cat.id %}bg-primary-light text-primary{% endif %}">
+                  {{ cat.name }} {% if cat.ebook_count %} ({{ cat.ebook_count }}){% endif %}
+                </a>
+              </li>
+            {% empty %}
+              <li class="text-sm text-gray-500">No categories</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Ebook cards -->
+      <section class="col-span-3">
+        {% if ebooks %}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for ebook in ebooks %}
+              <article class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden flex">
+                <div class="w-32 flex-shrink-0 bg-gray-50 dark:bg-gray-900">
+                  {% if ebook.cover_image %}
+                    <img src="{{ ebook.cover_image.url }}" alt="{{ ebook.title }}" class="h-32 w-full object-cover">
+                  {% else %}
+                    <img src="{% static 'home/ebook-default-cover.png' %}" alt="{{ ebook.title }}" class="h-32 w-full object-cover">
+                  {% endif %}
+                </div>
+                <div class="p-4 flex flex-col justify-between flex-1">
+                  <div>
+                    <h4 class="text-lg font-semibold">{{ ebook.title }}</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                      {% if ebook.description %}
+                        {{ ebook.description|striptags|truncatechars:160 }}
+                      {% else %}
+                        No description available.
+                      {% endif %}
+                    </p>
+                    {% if ebook.category %}
+                      <p class="text-xs text-gray-500 mt-2">Category: <span class="font-medium">{{ ebook.category.name }}</span></p>
+                    {% endif %}
+                  </div>
+
+                  <div class="mt-4 flex items-center justify-between">
+                    <div class="text-xs text-gray-500">Published: {{ ebook.created_at|date:"M j, Y" }}</div>
+                    <div class="flex items-center space-x-2">
+                      <a href="{% url 'ebook_detail' ebook.slug %}" class="inline-block bg-primary text-white px-3 py-1 rounded hover:bg-primary-dark text-sm">Read</a>
+                      <!-- No download link provided -->
+                    </div>
+                  </div>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm text-center">
+            <p class="text-gray-600 dark:text-gray-300">No eBooks found.</p>
+          </div>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+</main>
+{% endblock %}

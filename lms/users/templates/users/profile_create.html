@@ -1,0 +1,25 @@
+{% extends 'home/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Create Profile - Kuza Ndoto Academy{% endblock %}
+
+{% block content %}
+<main class="flex-1 p-4 sm:p-6 overflow-y-auto">
+    <div class="max-w-xl mx-auto bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-lg shadow-md">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Create Your Profile</h1>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">Welcome! Please fill out your profile details to get started.</p>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            <fieldset>
+                {{ u_form|crispy }}
+                {{ p_form|crispy }}
+            </fieldset>
+            <div class="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
+                <button class="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-6 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800" type="submit">Save and Continue</button>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock %}

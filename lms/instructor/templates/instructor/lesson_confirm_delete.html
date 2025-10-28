@@ -1,0 +1,25 @@
+{% extends "instructor/index.html" %}
+
+{% block content %}
+<div class="bg-gray-800 p-6 rounded-lg shadow-md max-w-3xl mx-auto">
+    <h2 class="text-2xl font-bold mb-4 text-white">Confirm Delete</h2>
+    <p class="text-white mb-4">
+        Are you sure you want to delete the lesson <strong>{{ lesson.title }}</strong>? 
+        This action <span class="text-red-400 font-semibold">cannot</span> be undone.
+    </p>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group mt-4 flex space-x-4">
+            <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" type="submit">
+                Yes, Delete
+            </button>
+            <a href="{% url 'instructor_lesson_detail' lesson.id %}"
+               class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

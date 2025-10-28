@@ -1,0 +1,145 @@
+{% extends 'home/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}My Settings - Kuza Ndoto Academy{% endblock %}
+
+{% block content %}
+<main class="flex-1 p-4 sm:p-6 overflow-y-auto pb-24">
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center sm:text-left">
+        Settings
+    </h1>
+
+    <!-- Tab Navigation -->
+    <nav class="flex overflow-x-auto whitespace-nowrap border-b border-gray-200 dark:border-gray-700 mb-6 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700">
+        <a href="#" class="tab-link active py-3 px-4 flex-shrink-0 flex items-center gap-2 text-primary font-semibold border-b-2 border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded-t" data-tab="profile">
+            <i class="fas fa-user-circle"></i> <span class="hidden sm:inline">My Profile</span>
+        </a>
+        <a href="#" class="tab-link py-3 px-4 flex-shrink-0 flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded-t" data-tab="notifications">
+            <i class="fas fa-bell"></i> <span class="hidden sm:inline">Notifications</span>
+        </a>
+        <a href="#" class="tab-link py-3 px-4 flex-shrink-0 flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded-t" data-tab="account">
+            <i class="fas fa-lock"></i> <span class="hidden sm:inline">Account</span>
+        </a>
+    </nav>
+
+    <!-- Tab Content -->
+    <div>
+        <!-- My Profile Tab -->
+        <div id="tab-profile" class="tab-content">
+            <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md">
+                <div class="flex flex-col sm:flex-row items-center text-center sm:text-left space-y-4 sm:space-y-0 sm:space-x-6 mb-8 pb-6 border-b border-gray-200 dark:border-gray-700">
+                    {% if user.profile.image and user.profile.image.url != '/media/default.jpg' %}
+                        <img class="h-24 w-24 sm:h-28 sm:w-28 rounded-full object-cover ring-2 ring-offset-2 ring-primary dark:ring-offset-gray-800" src="{{ user.profile.image.url }}" alt="Profile Picture">
+                    {% else %}
+                        {% with first_name=user.profile.first_name|default:user.first_name|default:'' last_name=user.profile.last_name|default:user.last_name|default:'' %}
+                            <span class="flex items-center justify-center h-24 w-24 sm:h-28 sm:w-28 rounded-full bg-gray-200 dark:bg-gray-700 ring-2 ring-offset-2 ring-primary dark:ring-offset-gray-800 text-3xl font-semibold text-gray-600 dark:text-gray-300">
+                                {% if first_name or last_name %}
+                                    {{ first_name.0|upper }}{{ last_name.0|upper }}
+                                {% else %}
+                                    {{ user.email.0|upper|default:'U' }}
+                                {% endif %}
+                            </span>
+                        {% endwith %}
+                    {% endif %}
+
+                    <div>
+                        {% with first_name=user.profile.first_name|default:user.first_name|default:'' last_name=user.profile.last_name|default:user.last_name|default:'' %}
+                            <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                                {% if first_name or last_name %}
+                                    {{ first_name }} {{ last_name }}
+                                {% else %}
+                                    {{ user.email|truncatechars:20 }}
+                                {% endif %}
+                            </h2>
+                        {% endwith %}
+                        <p class="text-gray-500 dark:text-gray-400 break-words">{{ user.email }}</p>
+                        <span class="inline-block bg-primary-light dark:bg-primary-dark text-primary-darker dark:text-primary-light text-xs font-semibold px-2 py-1 rounded-full mt-2">{{ user.get_role_display }}</span>
+                    </div>
+                </div>
+
+                <!-- Profile Form -->
+                <form method="POST" enctype="multipart/form-data" class="space-y-6 max-w-full sm:max-w-3xl mx-auto">
+                    {% csrf_token %}
+                    <fieldset>
+                        <legend class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Update Profile Information</legend>
+                        {{ u_form|crispy }}
+                        {{ p_form|crispy }}
+                    </fieldset>
+                    <div class="flex flex-col sm:flex-row justify-end sm:space-x-3 space-y-3 sm:space-y-0 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <button class="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-6 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800" type="submit">
+                            Update Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Notifications Tab -->
+        <div id="tab-notifications" class="tab-content hidden">
+            <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md space-y-6">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Email Notifications</h2>
+                    <div class="space-y-3">
+                        <label class="flex items-center space-x-3">
+                            <input type="checkbox" class="h-5 w-5 text-primary rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-primary">
+                            <span class="text-gray-700 dark:text-gray-300">Email me about course updates</span>
+                        </label>
+                        <label class="flex items-center space-x-3">
+                            <input type="checkbox" class="h-5 w-5 text-primary rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-primary">
+                            <span class="text-gray-700 dark:text-gray-300">Weekly newsletter</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Appearance</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Theme settings are controlled globally using the 
+                        <i class="fas fa-sun mx-1"></i> / <i class="fas fa-moon mx-1"></i> icon in the header.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Tab -->
+        <div id="tab-account" class="tab-content hidden">
+            <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md space-y-6">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Account Security</h2>
+                    <a href="#" class="w-full sm:w-auto text-center bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800">
+                        Change Password
+                    </a>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-4">For security, you will be logged out after changing your password.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.querySelectorAll('.tab-link');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', e => {
+            e.preventDefault();
+            const tabName = tab.getAttribute('data-tab');
+
+            tabs.forEach(t => {
+                t.classList.remove('active', 'text-primary', 'font-semibold', 'border-b-2', 'border-primary');
+                t.classList.add('text-gray-500', 'dark:text-gray-400', 'hover:text-gray-700', 'dark:hover:text-gray-200', 'font-medium');
+            });
+            tab.classList.add('active', 'text-primary', 'font-semibold', 'border-b-2', 'border-primary');
+            tab.classList.remove('text-gray-500', 'dark:text-gray-400', 'hover:text-gray-700', 'dark:hover:text-gray-200', 'font-medium');
+
+            contents.forEach(content => {
+                content.classList.toggle('hidden', content.id !== `tab-${tabName}`);
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

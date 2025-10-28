@@ -1,0 +1,18 @@
+{% extends "home/base.html" %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card shadow-lg" style="max-width: 400px; width: 100%;">
+        <div class="card-header text-center bg-primary text-white">
+            <h4>Logged Out</h4>
+        </div>
+        <div class="card-body text-center">
+            <i class="fas fa-sign-out-alt fa-5x text-primary mb-3"></i>
+            <p class="lead">. Thank you for visiting Kuza Ndoto Academy. You have successfully logged out of your account.</p>
+            <a href="{% url 'login' %}" class="btn btn-primary btn-lg mt-3">
+                Log in Again
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock content %}

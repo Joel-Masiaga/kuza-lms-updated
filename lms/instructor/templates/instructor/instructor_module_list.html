@@ -1,0 +1,62 @@
+{% extends 'instructor/index.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-6 py-8">
+    <h1 class="text-3xl font-bold mb-6">Your Courses & Modules</h1>
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center">
+                <input type="text" placeholder="Search modules..." class="bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none">
+                <button class="ml-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Search</button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-gray-700 text-white rounded-lg">
+                <thead>
+                    <tr>
+                        <th class="px-6 py-3 border-b-2 border-gray-600 text-left text-sm font-semibold uppercase">Course</th>
+                        <th class="px-6 py-3 border-b-2 border-gray-600 text-left text-sm font-semibold uppercase">Modules</th>
+                        <th class="px-6 py-3 border-b-2 border-gray-600 text-left text-sm font-semibold uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in courses %}
+                    <tr class="bg-gray-800">
+                        <td class="px-6 py-4 border-b border-gray-600 font-bold">
+                            <a href="{% url 'instructor_course_detail' course.pk %}" class="text-blue-400 hover:text-blue-300">
+                                {{ course.title }}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4 border-b border-gray-600">
+                            {% if course.modules.all %}
+                                <ul class="list-disc pl-5">
+                                    {% for module in course.modules.all %}
+                                        <li class="py-1">
+                                            <a href="{% url 'instructor_module_detail' module.pk %}" class="text-blue-400 hover:text-blue-300">
+                                                {{ module.title }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <span class="text-gray-400">No modules available</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 border-b border-gray-600">
+                            <a href="{% url 'create_module' pk=course.pk %}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Add Module
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

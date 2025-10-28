@@ -1,0 +1,610 @@
+{% load static tailwind_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Kuza Ndoto Academy{% endblock %}</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- <link href="./output.css" rel="stylesheet"> -->
+
+    {% tailwind_css %} <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+
+    <style>
+        /* --- 1. BRAND & TYPOGRAPHY --- */
+        :root {
+            --color-primary: #00878d;
+            --color-primary-light: #e0f2f1;
+            --color-primary-dark: #006f74;
+            --color-primary-darker: #005f63;
+            --font-family-sans: 'Inter', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family-sans);
+        }
+
+        /* --- 2. CUSTOM BRAND CLASSES --- */
+        .bg-primary { background-color: var(--color-primary); }
+        .text-primary { color: var(--color-primary); }
+        .border-primary { border-color: var(--color-primary); }
+        .bg-primary-light { background-color: var(--color-primary-light); }
+        .text-primary-darker { color: var(--color-primary-darker); }
+        .hover\:bg-primary-dark:hover { background-color: var(--color-primary-dark); }
+        .focus\:ring-primary:focus { --tw-ring-color: var(--color-primary); }
+
+        /* --- 3. SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #E5E7EB; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #9CA3AF; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-track { background: #1F2937; }
+        .dark ::-webkit-scrollbar-thumb { background: #4B5563; }
+
+        /* --- 4. L1 SIDEBAR (HOVER EXPAND) --- */
+        #l1-sidebar {
+            width: 5rem;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
+        }
+        #l1-sidebar:hover { width: 16rem; }
+        .l1-link-text {
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+            white-space: nowrap;
+        }
+        #l1-sidebar:hover .l1-link-text {
+            opacity: 1;
+            transition-delay: 0.1s;
+        }
+        .l1-link-icon { width: 1.75rem; flex-shrink: 0; }
+
+        /* Active Nav Styling (Link Background & Text) */
+        .nav-active {
+            background-color: var(--color-primary-light);
+        }
+        .nav-active .l1-link-icon,
+        .nav-active .l1-link-text {
+            color: var(--color-primary);
+        }
+
+        .dark .nav-active {
+            background-color: var(--color-primary);
+        }
+         .dark .nav-active .l1-link-icon,
+         .dark .nav-active .l1-link-text {
+             color: white;
+         }
+
+        /* --- 5. LMS/COURSE SPECIFIC STYLES --- */
+        .slide { display: none; }
+        .slide.active { display: block; }
+        .slide-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Notes panel open/closed transition - pages may rely on this */
+        #notes-panel {
+            max-height: 0;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        #notes-panel.notes-open { max-height: 20rem; }
+        @media (min-width: 768px) { #notes-panel.notes-open { max-height: 16rem; } }
+
+        /* --- 6. DASHBOARD SPECIFIC STYLES --- */
+        .progress-bar {
+            height: 8px; background-color: #e2e8f0; border-radius: 9999px; overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%; background-color: var(--color-primary); border-radius: 9999px; transition: width 0.3s ease-in-out;
+        }
+        .progress-bar-sm { height: 6px; }
+
+        /* Additional style to ensure body takes height */
+        html, body {
+            height: 100%;
+            overflow: hidden; /* Prevent double scrollbars */
+        }
+        #app-content {
+            height: calc(100vh - 4rem); /* Adjust based on header height */
+        }
+        main {
+            height: 100%;
+        }
+
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 h-screen overflow-hidden">
+
+    <!-- Toast stack for Django messages -->
+    <div id="toast-stack" class="fixed top-20 right-4 z-[100] space-y-3 max-w-sm w-[calc(100vw-2rem)] sm:w-96" aria-live="polite" aria-atomic="true">
+        {% if messages %}
+            {% for message in messages %}
+                {% with tags=message.tags %}
+                <div class="toast pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-lg shadow-lg border
+                    {% if 'success' in tags %} bg-green-600 text-white border-green-500
+                    {% elif 'error' in tags %} bg-red-600 text-white border-red-500
+                    {% elif 'warning' in tags %} bg-yellow-500 text-white border-yellow-400
+                    {% else %} bg-primary text-white border-primary
+                    {% endif %}">
+                    <div class="shrink-0">
+                        {% if 'success' in tags %}
+                          <i class="fas fa-check-circle"></i>
+                        {% elif 'error' in tags %}
+                          <i class="fas fa-times-circle"></i>
+                        {% elif 'warning' in tags %}
+                          <i class="fas fa-exclamation-triangle"></i>
+                        {% else %}
+                          <i class="fas fa-info-circle"></i>
+                        {% endif %}
+                    </div>
+                    <div class="text-sm font-medium flex-1">{{ message }}</div>
+                    <button class="ml-2 text-white/80 hover:text-white close-toast" aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                {% endwith %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div id="mobile-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
+
+    <header class="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-800 shadow-md z-40 flex items-center justify-between px-4">
+        <div class="flex items-center space-x-4">
+            <button id="mobileL2SidebarToggle" class="text-gray-700 dark:text-gray-200 md:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded-md p-1 {% block show_mobile_l2_toggle %}hidden{% endblock %}">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <div class="flex items-center space-x-2">
+                 <img src="{% static 'home/logo2.png' %}" alt="Kuza Ndoto Academy Logo" class="h-8 w-8 rounded-lg" onerror="this.src='https://placehold.co/32x32/00878d/FFF?text=KN'">
+                 <span class="hidden md:inline text-xl font-bold text-green-900 dark:text-white">Kuza Ndoto Academy</span>
+            </div>
+        </div>
+        <div class="hidden md:flex items-center">
+            <input type="text" placeholder="Search courses, docs..." class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary w-64 lg:w-96">
+            <button class="ml-2 p-2 rounded-lg bg-primary hover:bg-primary-dark text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800"> <i class="fas fa-search"></i> </button>
+        </div>
+        <div class="flex items-center space-x-2 sm:space-x-4">
+            <span class="flex items-center text-yellow-500 font-semibold text-xs sm:text-sm gap-1 sm:gap-2 whitespace-nowrap">
+                <i class="fas fa-medal text-base sm:text-lg"></i>
+                <span>
+                    {% if user.is_authenticated %}
+                        {{ user.profile.points|default:0 }}
+                    {% else %} 0
+                    {% endif %} pts
+                </span>
+            </span>
+                            
+                <button id="themeToggle" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded-full w-10 h-10 flex items-center justify-center"> <i class="fas fa-moon text-lg"></i> </button>
+
+            <div class="flex items-center relative group">
+
+                {% if user.is_authenticated %}
+                    {% with first_name=user.profile.first_name|default:user.first_name|default:'' last_name=user.profile.last_name|default:user.last_name|default:'' %}
+                    {% if user.profile.image and user.profile.image.url != '/media/default.jpg' %}
+                        <img src="{{ user.profile.image.url }}"  alt="User Avatar" class="h-8 w-8 rounded-full mr-2 border-2 border-transparent hover:border-primary transition-colors cursor-pointer object-cover">
+                    {% else %}
+                        {% with initial_first=first_name.0|default:'' initial_last=last_name.0|default:'' %}
+                            {% if initial_first or initial_last %}
+                                <img src="https://placehold.co/32x32/EFEFEF/777?text={{ initial_first|upper }}{{ initial_last|upper }}" alt="User Avatar" class="h-8 w-8 rounded-full mr-2 border-2 border-transparent hover:border-primary transition-colors cursor-pointer">
+                            {% else %}
+                                <img src="https://placehold.co/32x32/EFEFEF/777?text={{ user.email.0|upper|default:'U' }}" alt="User Avatar" class="h-8 w-8 rounded-full mr-2 border-2 border-transparent hover:border-primary transition-colors cursor-pointer">
+                            {% endif %}
+                        {% endwith %}
+                    {% endif %}
+
+                    {% if first_name or last_name %}
+                        <span class="hidden sm:inline text-green-900 dark:text-white font-medium cursor-pointer">{{ first_name }} {{ last_name }}</span>
+                    {% else %}
+                        <span class="hidden sm:inline text-green-900 dark:text-white font-medium cursor-pointer">{{ user.email|truncatechars:15 }}</span>
+                    {% endif %}
+                    {% endwith %}
+
+                {% else %}
+                     <img src="https://placehold.co/32x32/EFEFEF/777?text=G" alt="Guest Avatar" class="h-8 w-8 rounded-full mr-2 border-2 border-transparent hover:border-primary transition-colors cursor-pointer">
+                    <span class="hidden sm:inline text-gray-900 dark:text-white font-medium cursor-pointer">Guest</span>
+                {% endif %}
+
+        
+            </div>
+            </div>
+    </header>
+
+    <div class="flex h-screen pt-16 pb-16 md:pb-0">
+
+        <nav id="l1-sidebar" class="bg-white dark:bg-gray-800 flex-shrink-0 flex-col py-4 space-y-2 shadow-lg z-20 hidden md:flex">
+             <a href="{% url 'home' %}" data-page="home" title="Dashboard" class="l1-link {% if request.resolver_match.url_name == 'home' %}nav-active{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700{% endif %} flex items-center p-3 rounded-lg transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 group">
+                <i class="fas fa-home text-xl l1-link-icon text-center"></i> <span class="ml-4 font-semibold l1-link-text">Dashboard</span>
+            </a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'courses' %}" data-page="my-courses" title="My Courses" class="l1-link {% if request.resolver_match.url_name == 'courses' or request.resolver_match.url_name == 'course_detail' or request.resolver_match.url_name == 'lesson_detail' or request.resolver_match.url_name == 'module_detail' or request.resolver_match.url_name == 'quiz_detail' %}nav-active{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700{% endif %} flex items-center p-3 rounded-lg transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 group">
+                 <i class="fas fa-graduation-cap text-xl l1-link-icon text-center"></i> <span class="ml-4 font-semibold l1-link-text">My Courses</span>
+            </a>
+            {% endif %}
+            <a href="{% url 'certificate_list' %}" data-page="certificates" title="Certificates" class="l1-link {% if request.resolver_match.url_name == 'certificate_list' %}nav-active{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700{% endif %} flex items-center p-3 rounded-lg transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 group">
+                 <i class="fas fa-certificate text-xl l1-link-icon text-center"></i> <span class="ml-4 font-semibold l1-link-text">Certificates</span>
+             </a>
+            <a href="{% url 'ebook_list' %}" data-page="ebooks" title="eBooks" class="l1-link {% if request.resolver_match.url_name == 'ebook_list' or request.resolver_match.url_name == 'ebook_detail' %}nav-active{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700{% endif %} flex items-center p-3 rounded-lg transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 group">
+                 <i class="fas fa-book text-xl l1-link-icon text-center"></i> <span class="ml-4 font-semibold l1-link-text">eBooks</span>
+            </a>
+
+             <a href="{% url 'quiz_list' %}" data-page="quizzes" title="Quizzes" class="l1-link text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center p-3 rounded-lg transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 group">
+                 <i class="fas fa-list-check text-xl l1-link-icon text-center"></i> <span class="ml-4 font-semibold l1-link-text">Quizzes</span>
+             </a>
+             <div class="flex-grow"></div> {% if user.is_authenticated %}
+              <a href="{% url 'profile' %}" data-page="settings" title="Settings" class="l1-link {% if request.resolver_match.url_name == 'profile' %}nav-active{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700{% endif %} flex items-center p-3 rounded-lg transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 group">
+                 <i class="fas fa-cog text-xl l1-link-icon text-center"></i> <span class="ml-4 font-semibold l1-link-text">Settings</span>
+              </a>
+              <form action="{% url 'logout' %}" method="post" class="w-full">
+                  {% csrf_token %}
+                  <button type="submit" title="Logout" class="l1-link text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center p-3 rounded-lg transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 group w-full">
+                      <i class="fas fa-sign-out-alt text-xl l1-link-icon text-center"></i> <span class="ml-4 font-semibold l1-link-text">Logout</span>
+                  </button>
+              </form>
+             {% else %}
+                 <a href="{% url 'login' %}" title="Login" class="l1-link text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center p-3 rounded-lg transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 group">
+                     <i class="fas fa-sign-in-alt text-xl l1-link-icon text-center"></i> <span class="ml-4 font-semibold l1-link-text">Login</span>
+                 </a>
+             {% endif %}
+        </nav>
+
+        <div id="app-content" class="flex-1 flex flex-col overflow-hidden bg-gray-100 dark:bg-gray-900">
+             {% block content %}
+             <main class="flex-1 p-4 sm:p-6 overflow-y-auto">
+                <div class="flex-1 flex items-center justify-center h-full">
+                     <i class="fas fa-spinner fa-spin text-primary text-4xl"></i>
+                 </div>
+             </main>
+             {% endblock %}
+        </div>
+    </div>
+
+    <nav id="l1-mobile-nav" class="fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-gray-800 shadow-[0_-2px_6px_rgba(0,0,0,0.1)] z-40 flex md:hidden items-center justify-around">
+         <a href="{% url 'home' %}" data-page="home" class="l1-mobile-link flex flex-col items-center justify-center {% if request.resolver_match.url_name == 'home' %}text-primary dark:text-primary-light{% else %}text-gray-500 dark:text-gray-400{% endif %} p-2 rounded-lg w-1/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            <i class="fas fa-home text-xl"></i>
+            <span class="text-xs font-medium">Home</span>
+        </a>
+        {% if user.is_authenticated %}
+         <a href="{% url 'courses' %}" data-page="my-courses" class="l1-mobile-link flex flex-col items-center justify-center {% if request.resolver_match.url_name == 'courses' or request.resolver_match.url_name == 'course_detail' or request.resolver_match.url_name == 'lesson_detail' or request.resolver_match.url_name == 'module_detail' or request.resolver_match.url_name == 'quiz_detail' %}text-primary dark:text-primary-light{% else %}text-gray-500 dark:text-gray-400{% endif %} p-2 rounded-lg w-1/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            <i class="fas fa-graduation-cap text-xl"></i>
+            <span class="text-xs font-medium">Courses</span>
+        </a>
+        {% endif %}
+         <a href="{% url 'certificate_list' %}" data-page="certificates" class="l1-mobile-link flex flex-col items-center justify-center {% if request.resolver_match.url_name == 'certificate_list' %}text-primary dark:text-primary-light{% else %}text-gray-500 dark:text-gray-400{% endif %} p-2 rounded-lg w-1/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            <i class="fas fa-certificate text-xl"></i>
+            <span class="text-xs font-medium">Certs</span>
+        </a>
+        <a href="{% url 'quiz_list' %}" data-page="quizzes" class="l1-mobile-link flex flex-col items-center justify-center {% if request.resolver_match.url_name == 'quiz_list' %}text-primary dark:text-primary-light{% else %}text-gray-500 dark:text-gray-400{% endif %} p-2 rounded-lg w-1/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            <i class="fas fa-list-check text-xl"></i>
+            <span class="text-xs font-medium">Quizzes</span>
+        </a>
+        {% if user.is_authenticated %}
+         <a href="{% url 'profile' %}" data-page="settings" class="l1-mobile-link flex flex-col items-center justify-center {% if request.resolver_match.url_name == 'profile' %}text-primary dark:text-primary-light{% else %}text-gray-500 dark:text-gray-400{% endif %} p-2 rounded-lg w-1/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+             <i class="fas fa-cog text-xl"></i>
+             <span class="text-xs font-medium">Settings</span>
+         </a>
+         {% else %}
+          <a href="{% url 'login' %}" data-page="login" class="l1-mobile-link flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 p-2 rounded-lg w-1/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+              <i class="fas fa-sign-in-alt text-xl"></i>
+              <span class="text-xs font-medium">Login</span>
+          </a>
+         {% endif %}
+    </nav>
+
+<!-- Chatbot Toggle Button -->
+<div class="fixed bottom-6 right-6 z-50">
+  <button id="chatbotToggle"
+          class="bg-primary hover:bg-primary-dark text-white w-14 h-14 rounded-full shadow-lg ring-2 ring-white/70 flex items-center justify-center">
+    <i class="fas fa-robot text-2xl"></i>
+  </button>
+</div>
+
+<!-- Chatbot Panel -->
+<div id="chatbotBox"
+     class="hidden fixed bottom-20 right-6 z-50 w-80 sm:w-96 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
+  <!-- Header -->
+  <div class="flex items-center p-4 bg-primary text-white">
+    <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary-dark ring-2 ring-white/70">
+      <i class="fas fa-robot text-lg"></i>
+    </span>
+    <div class="ml-3">
+      <h4 class="text-base font-semibold leading-tight">Revise with Tabby</h4>
+      <p class="text-xs text-white/80">Your study buddy</p>
+    </div>
+    <button id="closeChatbot"
+            class="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            aria-label="Close chatbot">
+      <i class="fas fa-times text-lg"></i>
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div class="p-4 space-y-3 h-64 overflow-y-auto bg-gray-50 dark:bg-gray-800">
+    <p class="text-white text-sm font-semibold text-center py-2 rounded-md bg-primary shadow-sm">
+      How can I help you today?
+    </p>
+    <p class="text-xs text-gray-500 dark:text-gray-400 text-center">Powered by Gemini</p>
+    <div id="chatMessages"></div>
+  </div>
+
+  <!-- Input -->
+  <form id="chatForm" class="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+    {% csrf_token %}
+    <textarea id="userInput" rows="1" placeholder="Ask me a question..."
+              class="flex-1 resize-none px-3 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400 ring-1 ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-primary focus:outline-none"></textarea>
+    <button type="submit"
+            class="shrink-0 inline-flex items-center justify-center h-10 w-10 rounded-lg bg-primary hover:bg-primary-dark text-white shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+            aria-label="Send">
+      <i class="fas fa-paper-plane text-sm"></i>
+    </button>
+  </form>
+</div>
+
+<script>
+// Chatbot controller script
+(function () {
+  const toggleBtn = document.getElementById('chatbotToggle');
+  const box = document.getElementById('chatbotBox');
+  const closeBtn = document.getElementById('closeChatbot');
+  const form = document.getElementById('chatForm');
+  const input = document.getElementById('userInput');
+  const messages = document.getElementById('chatMessages');
+
+  if (!toggleBtn || !box || !form || !input || !messages) return;
+
+  const endpoint =
+    window.CHATBOT_ENDPOINT ||
+    form.getAttribute('action') ||
+    '/chatbot/'; // default; if your URL is different, set window.CHATBOT_ENDPOINT
+
+  function getCsrfToken() {
+    // Prefer token from form input rendered by {% csrf_token %}
+    const el = form.querySelector('input[name=csrfmiddlewaretoken]');
+    if (el && el.value) return el.value;
+    // Fallback to cookie
+    const name = 'csrftoken';
+    const cookies = document.cookie ? document.cookie.split(';') : [];
+    for (let c of cookies) {
+      c = c.trim();
+      if (c.startsWith(name + '=')) return decodeURIComponent(c.substring(name.length + 1));
+    }
+    return '';
+  }
+
+  function scrollToBottom() {
+    const container = box.querySelector('.h-64.overflow-y-auto') || box;
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function bubble(html, role) {
+    const wrap = document.createElement('div');
+    // Simple styling for user vs bot
+    if (role === 'user') {
+      wrap.className = 'flex justify-end';
+      wrap.innerHTML =
+        '<div class="max-w-[85%] bg-blue-600 text-white text-sm px-3 py-2 rounded-lg shadow">' +
+        escapeHtml(html) +
+        '</div>';
+    } else if (role === 'bot') {
+      wrap.className = 'flex justify-start';
+      wrap.innerHTML =
+        '<div class="max-w-[85%] bg-gray-700 text-gray-100 text-sm px-3 py-2 rounded-lg shadow">' +
+        html +
+        '</div>';
+    } else {
+      // pending/loading
+      wrap.className = 'flex justify-start';
+      wrap.innerHTML =
+        '<div class="max-w-[85%] bg-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg shadow flex items-center gap-2">' +
+        '<span class="inline-block h-2 w-2 rounded-full bg-gray-300 animate-bounce" style="animation-delay:0ms"></span>' +
+        '<span class="inline-block h-2 w-2 rounded-full bg-gray-300 animate-bounce" style="animation-delay:120ms"></span>' +
+        '<span class="inline-block h-2 w-2 rounded-full bg-gray-300 animate-bounce" style="animation-delay:240ms"></span>' +
+        '<span class="ml-1">Thinking…</span>' +
+        '</div>';
+    }
+    messages.appendChild(wrap);
+    scrollToBottom();
+    return wrap;
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  function autosize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(120, el.scrollHeight) + 'px';
+  }
+
+  // Toggle open/close
+  toggleBtn.addEventListener('click', () => {
+    box.classList.toggle('hidden');
+    if (!box.classList.contains('hidden')) {
+      input.focus();
+      scrollToBottom();
+    }
+  });
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => box.classList.add('hidden'));
+  }
+
+  // Submit handler
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+
+    // Show user's message
+    bubble(text, 'user');
+    // Clear input
+    input.value = '';
+    autosize(input);
+
+    // Pending bubble
+    const pending = bubble('', 'pending');
+
+    // Build payload: prefer 'prompt' param for compatibility with your view
+    const params = new URLSearchParams();
+    params.set('prompt', text);
+
+    // Optional lesson_id support (set data-lesson-id on body or container if available)
+    const lessonId =
+      document.body.getAttribute('data-lesson-id') ||
+      box.getAttribute('data-lesson-id') ||
+      null;
+    if (lessonId) params.set('lesson_id', lessonId);
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCsrfToken(),
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          'Accept': 'application/json',
+        },
+        body: params.toString(),
+        credentials: 'same-origin',
+      });
+
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = { error: 'Invalid server response.' };
+      }
+
+      // Replace pending with bot reply
+      pending.remove();
+
+      if (!res.ok || data.error) {
+        const msg = data.error || `Error ${res.status}. Please try again.`;
+        bubble(escapeHtml(msg), 'bot');
+        return;
+      }
+
+      // Server returns HTML in data.response (Markdown already converted)
+      bubble(data.response || 'No response.', 'bot');
+    } catch (err) {
+      pending.remove();
+      bubble('Network error. Please check your connection and try again.', 'bot');
+    }
+  });
+
+  // Autosize textarea and Enter-to-send
+  input.addEventListener('input', () => autosize(input));
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    }
+  });
+
+  // Initialize autosize
+  autosize(input);
+})();
+</script>
+    
+    <script>
+        // --- Global Theme Toggle ---
+        const themeToggle = document.getElementById('themeToggle');
+        const setMode = (isDark) => {
+            document.documentElement.classList.toggle('dark', isDark);
+            localStorage.theme = isDark ? 'dark' : 'light';
+            if(themeToggle) themeToggle.querySelector('i').className = isDark ? 'fas fa-sun text-lg' : 'fas fa-moon text-lg';
+        }
+        const prefersDark = (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        // Ensure theme is set on initial load
+        if (localStorage.theme === 'dark' || prefersDark) {
+            document.documentElement.classList.add('dark');
+            if(themeToggle) themeToggle.querySelector('i').className = 'fas fa-sun text-lg';
+        } else {
+            document.documentElement.classList.remove('dark');
+             if(themeToggle) themeToggle.querySelector('i').className = 'fas fa-moon text-lg';
+        }
+        // Add click listener
+        if (themeToggle) themeToggle.addEventListener('click', () => {
+            setMode(!document.documentElement.classList.contains('dark'));
+        });
+
+
+        // --- Mobile L2 Sidebar Toggle Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileL2SidebarToggle = document.getElementById('mobileL2SidebarToggle');
+            const lessonSidebar = document.getElementById('lessonSidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            const closeL2Sidebar = document.getElementById('closeL2Sidebar');
+
+            const openMobileMenu = () => {
+                 if(lessonSidebar) lessonSidebar.classList.remove('-translate-x-full');
+                 if(overlay) overlay.classList.remove('hidden');
+            }
+            const closeMobileMenu = () => {
+                 if(lessonSidebar) lessonSidebar.classList.add('-translate-x-full');
+                 if(overlay) overlay.classList.add('hidden');
+            }
+
+            if (mobileL2SidebarToggle && lessonSidebar) {
+                 mobileL2SidebarToggle.addEventListener('click', openMobileMenu);
+            }
+            if (closeL2Sidebar) {
+                 closeL2Sidebar.addEventListener('click', closeMobileMenu);
+            }
+            if (overlay) {
+                 overlay.addEventListener('click', closeMobileMenu);
+            }
+
+            // NOTE: Removed base-level Notes panel toggle handlers to avoid conflicts with page-specific note logic.
+            // Pages (like lesson.html) should implement notes toggling themselves using the #notes-panel and #toggle-notes-btn elements.
+        });
+    </script>
+
+    <!-- Toast auto-dismiss and close handlers -->
+    <script>
+        (function () {
+            const stack = document.getElementById('toast-stack');
+            if (!stack) return;
+
+            // Close on click
+            stack.querySelectorAll('.close-toast').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const toast = btn.closest('.toast');
+                    if (!toast) return;
+                    toast.style.transition = 'opacity .3s ease, transform .3s ease';
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-6px)';
+                    setTimeout(() => toast.remove(), 320);
+                });
+            });
+
+            // Auto-remove after 3.5s (staggered)
+            const toasts = Array.from(stack.querySelectorAll('.toast'));
+            toasts.forEach((t, i) => {
+                setTimeout(() => {
+                    t.style.transition = 'opacity .3s ease, transform .3s ease';
+                    t.style.opacity = '0';
+                    t.style.transform = 'translateY(-6px)';
+                    setTimeout(() => t.remove(), 320);
+                }, 3500 + i * 300);
+            });
+        })();
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

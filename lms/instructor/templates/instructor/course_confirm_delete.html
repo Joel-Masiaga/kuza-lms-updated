@@ -1,0 +1,20 @@
+{% extends "instructor/index.html" %}
+
+{% block content %}
+<div class="bg-gray-800 p-6 rounded-lg shadow-md max-w-3xl mx-auto text-white">
+    <h2 class="text-2xl font-bold mb-4">Delete Course</h2>
+    <p class="mb-4">Are you sure you want to delete the course "<strong>{{ object.title }}</strong>"?</p>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <div class="flex space-x-4">
+            <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" type="submit">
+                Yes, Delete
+            </button>
+            <a class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700" href="{% url 'course_detail' object.id %}">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

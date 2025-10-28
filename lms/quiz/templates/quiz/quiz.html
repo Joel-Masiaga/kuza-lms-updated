@@ -1,0 +1,84 @@
+{% extends 'home/base.html' %}
+
+{% block title %}Take Quiz - {{ quiz.module.title }}{% endblock %}
+
+{% block content %}
+<main class="flex-1 px-4 py-4 pb-20 sm:p-6 overflow-y-auto">
+  <section class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 sm:p-6 mb-6">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-primary font-semibold mb-1">Quiz</p>
+          <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+            <i class="fas fa-question-circle text-primary"></i>
+            {{ quiz.title }}
+          </h1>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Module: <span class="font-medium text-gray-800 dark:text-gray-200">{{ quiz.module.title }}</span>
+            • Course: <span class="font-medium text-gray-800 dark:text-gray-200">{{ quiz.module.course.title }}</span>
+          </p>
+        </div>
+        <a href="{% url 'course_detail' quiz.module.course.pk %}"
+           class="hidden sm:inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+          <i class="fas fa-arrow-left"></i> Back to Course
+        </a>
+      </div>
+    </div>
+
+    <!-- Quiz Form -->
+    <form method="POST" action="{% url 'submit_quiz' quiz.id %}" class="space-y-6">
+      {% csrf_token %}
+
+      {% for question in questions %}
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 sm:p-6">
+          <div class="flex items-start gap-3 mb-4">
+            <span class="inline-flex items-center justify-center h-7 w-7 rounded-full bg-primary text-white text-xs font-bold shrink-0">
+              {{ forloop.counter }}
+            </span>
+            <h2 class="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100">
+              {{ question.question_text }}
+            </h2>
+          </div>
+
+          <div class="space-y-3">
+            {% for answer in question.answers.all %}
+              <label for="answer_{{ answer.id }}"
+                     class="flex items-start gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                <input
+                  class="mt-1.5 h-4 w-4 text-primary border-gray-300 dark:border-gray-600 focus:ring-primary"
+                  type="radio"
+                  name="question_{{ question.id }}"
+                  id="answer_{{ answer.id }}"
+                  value="{{ answer.id }}"
+                  required
+                />
+                <span class="text-sm text-gray-800 dark:text-gray-200">{{ answer.answer_text }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      {% empty %}
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 rounded-md p-4">
+          No questions available for this quiz yet.
+        </div>
+      {% endfor %}
+
+      <!-- Actions -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <a href="{% url 'course_detail' quiz.module.course.pk %}"
+           class="inline-flex justify-center items-center gap-2 px-4 py-2.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+          <i class="fas fa-times-circle"></i>
+          Cancel
+        </a>
+
+        <button type="submit"
+                class="inline-flex justify-center items-center gap-2 px-5 py-2.5 rounded-md bg-primary hover:bg-primary-dark text-white font-semibold transition">
+          <i class="fas fa-paper-plane"></i>
+          Submit Quiz
+        </button>
+      </div>
+    </form>
+  </section>
+</main>
+{% endblock %}

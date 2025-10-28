@@ -1,0 +1,48 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block title %}My Certificates - Kuza Ndoto Academy{% endblock %}
+
+{% block content %}
+<main class="flex-1 pt-4 pb-16 sm:p-6 bg-gray-100 dark:bg-gray-900 overflow-y-auto">
+    <h1 class="text-3xl m-6 font-bold text-gray-900 dark:text-white mb-6">My Certificates 🏅</h1>
+
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+        {% if certificates %}
+            <p class="text-gray-600 dark:text-gray-300 mb-6">Congratulations on your achievements! Download your earned certificates below.</p>
+            <div class="border-t dark:border-gray-700 pt-6 space-y-4">
+                {% for certificate in certificates %}
+                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600">
+                    <div class="flex items-center mb-3 sm:mb-0 text-center sm:text-left">
+                        <i class="fas fa-certificate text-yellow-500 text-3xl mr-4 flex-shrink-0"></i>
+                        <div>
+                            <p class="font-semibold text-gray-800 dark:text-gray-100">{{ certificate.course.title }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Issued: {{ certificate.issued_at|date:"M d, Y" }}</p>
+                             <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">ID: {{ certificate.unique_id }}</p> {# Display unique ID #}
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 flex-shrink-0">
+                        {% if certificate.certificate_file %}
+                        <a href="{% url 'download_certificate' certificate.id %}" class="text-sm bg-primary hover:bg-primary-dark text-white font-medium py-1.5 px-4 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 transition-colors flex items-center">
+                            <i class="fas fa-download mr-1.5"></i> Download
+                        </a>
+                        {% else %}
+                        <span class="text-sm bg-gray-400 text-white font-medium py-1.5 px-4 rounded-md cursor-not-allowed flex items-center">
+                             <i class="fas fa-spinner fa-spin mr-1.5"></i> Generating...
+                        </span>
+                        {% endif %}
+                        {# Add Share button if needed later #}
+                        {# <button class="text-sm bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 font-medium py-1.5 px-3 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 transition-colors flex items-center"><i class="fas fa-share-alt mr-1.5"></i> Share</button> #}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-600 dark:text-gray-400">You haven't earned any certificates yet. Keep learning!</p>
+            <div class="mt-4">
+                 <a href="{% url 'courses' %}" class="text-primary hover:underline">Explore Courses</a>
+            </div>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% load static tailwind_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% tailwind_css %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soma Online</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+</head>
+<body class="font-sans bg-gray-900 text-white">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 1000,
+            once: false,
+        });
+    </script> 
+
+    <nav class="bg-gray-800 shadow-md fixed top-0 w-full z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="{% static 'home/logo2.png' %}" alt="logo" class="w-10 h-10 mr-3">
+                <span class="text-xl font-bold text-white">Soma Online</span>
+            </div>
+            <button class="md:hidden text-gray-300 hover:text-white focus:outline-none" type="button" onclick="toggleNavbar()">
+                <i class="fas fa-bars text-2xl"></i>
+            </button>
+            <div class="hidden md:flex md:items-center md:space-x-6" id="navbarContent">
+                {% if user.is_authenticated and user.role == 'instructor' %}
+                    <a href="{% url 'instructor_dashboard' %}" class="text-gray-300 hover:text-white">Dashboard</a>
+                {% else %}
+                    <a href="#" class="text-gray-300 hover:text-white">Home</a>
+                {% endif %}
+                <a href="#" class="text-gray-300 hover:text-white">Courses</a>
+                <a href="#" class="text-gray-300 hover:text-white">About Us</a>
+                <a href="#" class="text-gray-300 hover:text-white">Contact</a>
+                {% if not user.is_authenticated %}
+                <a href="{% url 'login' %}" class="text-gray-300 hover:text-white">Login</a>
+                <a href="{% url 'register' %}" class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700">Register</a>
+                {% endif %} 
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex pt-16">
+        {% if user.is_authenticated and user.role == 'instructor' %}
+        <div class="w-64 bg-gray-800 text-white h-screen p-4 fixed left-0 top-16">
+            <ul>
+                <li class="mb-2">
+                    <div class="text-gray-300 hover:text-blue-500 cursor-pointer" onclick="toggleDropdown('coursesDropdown')">
+                        COURSES
+                    </div>
+                    <ul id="coursesDropdown" class="hidden pl-4 mt-2">
+                        <li><a href="{% url 'instructor_course_list' %}" class="text-gray-300 hover:text-blue-500">Courses</a></li>
+                        <li><a href="{% url 'instructor_module_list' %}" class="text-gray-300 hover:text-blue-500">Modules</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-blue-500">Lessons</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-blue-500">Videos</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-blue-500">Additional Materials</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-blue-500">Enrollments</a></li>
+                    </ul>
+                </li>
+                <li class="mb-2">
+                    <div class="text-gray-300 hover:text-blue-500 cursor-pointer" onclick="toggleDropdown('quizesDropdown')">
+                        QUIZZES
+                    </div>
+                    <ul id="quizesDropdown" class="hidden pl-4 mt-2">
+                        <li><a href="#" class="text-gray-300 hover:text-blue-500">Quizzes</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-blue-500">Questions</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-blue-500">Answers</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="flex-1 p-8 ml-64">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script>
+        function toggleNavbar() {
+            document.getElementById('navbarContent').classList.toggle('hidden');
+        }
+        function toggleDropdown(id) {
+            document.getElementById(id).classList.toggle('hidden');
+        }
+    </script>
+
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2025 Soma Online. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

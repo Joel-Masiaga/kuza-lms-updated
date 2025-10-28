@@ -1,0 +1,30 @@
+{% extends 'instructor/index.html' %}
+
+{% block content %}
+<div class="bg-gray-800 p-6 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold text-blue-400">{{ module.title }}</h1>
+    <p class="text-gray-300 mt-2">{{ module.content|safe }}</p>
+
+    <div class="mt-4">
+        <h2 class="text-lg font-semibold text-white">Module Objectives:</h2>
+        <ul class="list-disc list-inside text-gray-300 mt-2">
+            {% for objective in module.objectives.splitlines %}
+                <li>{{ objective }}</li>
+            {% empty %}
+                <li>No objectives listed.</li> 
+            {% endfor %}
+        </ul>
+    </div>
+
+    {% if module.image %}
+    <div class="mt-4">
+        <img src="{{ module.image.url }}" alt="Module Image" class="w-full h-64 object-cover rounded-lg shadow-lg">
+    </div>
+    {% endif %}
+
+    <div class="mt-6 flex space-x-4">
+        <a href="{% url 'update_module' pk=module.pk %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Edit Module</a>
+        <a href="{% url 'delete_module' pk=module.pk  %}" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Delete Module</a>
+    </div>
+</div>
+{% endblock %}

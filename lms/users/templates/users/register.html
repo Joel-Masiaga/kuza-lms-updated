@@ -1,0 +1,154 @@
+{% load tailwind_tags %}
+{% load static %}
+{% load socialaccount %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% tailwind_css %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kuza Ndoto Academy | Sign Up</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- <link href="./output.css" rel="stylesheet"> -->
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#00878d',
+              '100': '#e0f2f2',
+              '200': '#b3dfdf',
+              '300': '#80cbcb',
+              '400': '#4db6b6',
+              '500': '#26a69a',
+              '600': '#00878d',
+              '700': '#00696d',
+              '800': '#004f52',
+              '900': '#00383b',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body {
+      background: url('https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=1920&q=80')
+        no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Poppins', sans-serif;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+  </style>
+</head>
+
+<body class="flex items-start sm:items-center justify-center min-h-screen p-4 py-10 sm:py-4 relative bg-gray-900">
+
+  <!-- Gradient & Floating Circles -->
+  <div class="absolute inset-0 bg-gradient-to-br from-brand-900/70 via-brand-700/60 to-cyan-900/70"></div>
+  <div class="absolute w-72 h-72 bg-brand/30 rounded-full blur-3xl top-10 left-10 animate-[float_6s_ease-in-out_infinite]"></div>
+  <div class="absolute w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl bottom-10 right-10 animate-[float_8s_ease-in-out_infinite]"></div>
+
+  <!-- Main Register Card -->
+  <main class="glass relative z-10 p-6 sm:p-8 rounded-2xl w-full max-w-md text-white">
+
+    <div class="text-center mb-6">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" class="w-14 sm:w-16 mx-auto mb-3" alt="Kuza Ndoto Logo">
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-wide">Kuza Ndoto Academy</h1>
+      <p class="text-brand-200 mt-2 text-sm uppercase tracking-widest">Create your account</p>
+    </div>
+
+    <!-- Social Signup Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4 mb-6">
+      <a href="{% provider_login_url 'google' %}"
+         class="w-full sm:flex-1 bg-none hover:bg-green-600 py-3 rounded-lg transition flex items-center justify-center space-x-3 shadow border border-gray-200 text-white"
+         aria-label="Sign up with Google">
+        <i class="fa-brands fa-google text-2xl px-4"></i>
+        <span class="font-semibold text-sm text-white">Sign up with Google</span>
+      </a>
+
+      <a href="#"
+         class="w-full sm:flex-1 bg-none hover:bg-green-600 py-3 rounded-lg transition flex items-center justify-center space-x-3 shadow border border-gray-200 text-white"
+         aria-label="Sign up with GitHub">
+        <i class="fa-brands fa-github text-2xl px-4"></i>
+        <span class="font-semibold text-sm text-white">Sign up with GitHub</span>
+      </a>
+    </div>
+
+    <!-- Divider -->
+    <div class="flex items-center mb-5 w-full">
+      <hr class="flex-1 h-px bg-gray-400/30 border-0">
+      <span class="mx-3 text-gray-300 text-sm text-center px-4">Or sign up manually</span>
+      <hr class="flex-1 h-px bg-gray-400/30 border-0">
+    </div>
+
+    <!-- Errors -->
+    {% if form and form.errors %}
+      <div class="mb-4 p-3 text-sm text-red-500 bg-red-100/20 border border-red-500/30 rounded-md text-center">
+        Please correct the errors below and try again.
+      </div>
+    {% endif %}
+
+    <!-- Manual Form Fields -->
+    <form method="POST" class="space-y-4">
+      {% csrf_token %}
+
+      <div>
+        <label for="id_email" class="block text-sm font-medium text-gray-200">Email</label>
+        <input type="email" name="email" id="id_email" autocomplete="email"
+               class="mt-1 w-full rounded-md bg-white/80 text-gray-900 placeholder-gray-400 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-400 px-3 py-2"
+               required>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="id_password1" class="block text-sm font-medium text-gray-200">Password</label>
+          <input type="password" name="password1" id="id_password1" autocomplete="new-password"
+                 class="mt-1 w-full rounded-md bg-white/80 text-gray-900 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-400 px-3 py-2"
+                 required>
+        </div>
+        <div>
+          <label for="id_password2" class="block text-sm font-medium text-gray-200">Confirm Password</label>
+          <input type="password" name="password2" id="id_password2" autocomplete="new-password"
+                 class="mt-1 w-full rounded-md bg-white/80 text-gray-900 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-400 px-3 py-2"
+                 required>
+        </div>
+      </div>
+
+      <button type="submit"
+              class="w-full bg-green-600 py-2 rounded-lg hover:opacity-90 transition text-white font-semibold shadow-lg focus:outline-none focus:ring-2 focus:ring-brand-300 focus:ring-opacity-50">
+        Create account
+      </button>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-gray-300">
+      Already have an account?
+      <a href="{% url 'login' %}" class="text-brand-300 hover:underline font-medium">Login</a>
+    </p>
+
+    <p class="mt-3 text-center text-sm text-gray-400">
+      By signing up, you agree to our Terms and Privacy Policy.
+    </p>
+
+  </main>
+
+</body>
+</html>

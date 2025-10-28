@@ -1,0 +1,57 @@
+{% extends "instructor/index.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %}
+<div class="bg-gray-800 p-6 rounded-lg shadow-md max-w-3xl mx-auto">
+    <h2 class="text-2xl font-bold mb-4 text-white">Update Lesson</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset class="form-group">
+            <div class="space-y-4">
+                {% for field in form %}
+                    <div>
+                        <label class="block text-white font-semibold">{{ field.label }}</label>
+                        {{ field|safe }}
+                    </div>
+                {% endfor %}
+            </div>
+        </fieldset>
+        <div class="form-group mt-4 flex space-x-4">
+            <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" type="submit">
+                Update Lesson
+            </button>
+            <a href="#" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+    input, textarea, select {
+        background-color: #2d3748;
+        color: #ffffff;
+        border: 1px solid #4a5568;
+        padding: 8px;
+        width: 100%;
+        border-radius: 5px;
+        margin-top: 4px;
+    }
+    input::placeholder, textarea::placeholder {
+        color: #a0aec0;
+    }
+
+    input[name="title"] {
+        background-color: #2d3748 !important;
+        color: #ffffff !important;
+    }
+</style>
+
+{# Load TinyMCE JS and CSS #}
+<script src="https://cdn.tiny.cloud/1/vfs7d5iv0m5t5e8umsdkl93yyo9cfb5ozg5mno17xu288tnp/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<link rel="stylesheet" href="{% static 'staticfiles/tinymce/skins/ui/oxide/content.min.css' %}">
+<script src="{% static 'staticfiles/tinymce/tinymce.min.js' %}"></script>
+{{ form.media }}
+
+{% endblock %}

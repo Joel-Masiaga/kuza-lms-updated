@@ -1,0 +1,184 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block title %}{{ course.title }} - Kuza Ndoto Academy{% endblock %}
+
+{% comment %} No L2 sidebar on this page, so remove the toggle block {% endcomment %}
+
+{% block content %}
+<main class="flex-1 p-4 sm:p-6 bg-gray-100 dark:bg-gray-900 overflow-y-auto">
+    {# Breadcrumb Navigation #}
+    <nav class="max-w-5xl mx-auto mb-6" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+            <li><a href="{% url 'home' %}" class="hover:text-gray-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-1"><i class="fas fa-home"></i></a></li>
+            <li><i class="fas fa-chevron-right text-xs text-gray-400 dark:text-gray-500"></i></li>
+            <li><a href="{% url 'courses' %}" class="hover:text-gray-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-1">My Courses</a></li>
+            <li><i class="fas fa-chevron-right text-xs text-gray-400 dark:text-gray-500"></i></li>
+            <li><span class="font-medium text-gray-800 dark:text-white p-1">{{ course.title }}</span></li>
+        </ol>
+    </nav>
+
+    {# Main Content Wrapper for Course Detail #}
+    <div class="max-w-5xl pb-12 mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden">
+        <div class="p-6 sm:p-8">
+             <div class="mb-4">
+                 <span class="inline-block bg-primary-light dark:bg-primary-dark text-primary-darker dark:text-primary-light text-sm font-semibold px-3 py-1 rounded-full">{{ course.get_category_display }}</span>
+             </div>
+             <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-2">{{ course.title }}</h1>
+             <p class="text-md text-gray-500 dark:text-gray-400 mb-4">
+                Instructor: {{ course.created_by.profile.first_name|default:'' }} {{ course.created_by.profile.last_name|default:course.created_by.email }}
+                <span class="text-xs ml-2">(Created: {{ course.created_at|date:"M d, Y" }})</span> {# Added Creation Date #}
+             </p>
+             {% if course.image %}
+                <img src="{{ course.image.url }}" alt="{{ course.title }}" class="w-full h-auto max-h-60 object-cover rounded-lg shadow-md mb-6" onerror="this.style.display='none'">
+             {% endif %}
+            {# --- Course Description Displayed Here --- #}
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">📖 Course Description</h2>
+            <div class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 mb-6">
+                 {% if course.description %}
+                    {{ course.description|safe }}
+                 {% else %}
+                    <p class="italic text-gray-500 dark:text-gray-400">No description provided for this course.</p>
+                 {% endif %}
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 mt-6">
+                {% if user.is_authenticated %}
+                    {% if enrolled %}
+                        {% with first_lesson=modules.first.lessons.first %}
+                            {% if first_lesson %}
+                                <a href="{% url 'lesson_detail' first_lesson.pk %}" class="w-full sm:w-auto text-center bg-primary hover:bg-primary-dark text-white font-medium py-2 px-6 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800">
+                                    Continue to Lessons
+                                </a>
+                            {% else %}
+                                 <span class="w-full sm:w-auto text-center bg-gray-400 cursor-not-allowed text-white font-medium py-2 px-6 rounded-lg">
+                                    No Lessons Yet
+                                </span>
+                            {% endif %}
+                        {% endwith %}
+                        <form method="POST" action="{% url 'course_detail' course.id %}" class="w-full sm:w-auto">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="unenroll">
+                            <button type="submit" class="w-full text-center bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 dark:focus-visible:ring-offset-gray-800">Unenroll</button>
+                        </form>
+                    {% else %}
+                        <form method="POST" action="{% url 'course_detail' course.id %}" class="w-full sm:w-auto">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="enroll">
+                            <button type="submit" class="w-full text-center bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-500 dark:focus-visible:ring-offset-gray-800">Enroll Now</button>
+                        </form>
+                    {% endif %}
+                 {% else %}
+                      <a href="{% url 'login' %}?next={{ request.path }}" class="w-full sm:w-auto text-center bg-primary hover:bg-primary-dark text-white font-medium py-2 px-6 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800">
+                          Login to Enroll
+                      </a>
+                 {% endif %}
+             </div>
+        </div>
+
+        <div class="border-t border-gray-200 dark:border-gray-700">
+             <button class="w-full text-left p-4 sm:p-6 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center justify-between transition duration-300 focus:outline-none" onclick="toggleAccordion('objectives-section')">
+                <span class="text-lg font-semibold text-gray-800 dark:text-gray-100">🎯 Course Objectives</span>
+                <i class="fas fa-chevron-down text-gray-500 dark:text-gray-400 transform transition-transform duration-300" id="objectives-sectionIcon"></i>
+            </button>
+            <div id="objectives-section" class="p-4 sm:p-6 hidden">
+                 {% with objectives_list=course.objectives.splitlines %}
+                     {% if objectives_list and course.objectives %} {# Check if objectives exist and list is not empty #}
+                         <ul class="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+                             {% for objective in objectives_list %}
+                                 {% if objective %} {# Skip empty lines #}
+                                     <li>{{ objective|safe }}</li>
+                                 {% endif %}
+                             {% endfor %}
+                         </ul>
+                     {% else %}
+                         <p class="text-gray-500 dark:text-gray-400 italic">No objectives stated for this course.</p>
+                     {% endif %}
+                 {% endwith %}
+            </div>
+        </div>
+
+        <div class="border-t border-gray-200 dark:border-gray-700">
+            <div class="p-4 sm:p-6">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">📚 Modules & Lessons</h3>
+                <div class="space-y-4">
+                    {% for module in modules %}
+                    <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <div class="flex justify-between items-start mb-3">
+                             <div>
+                                <h4 class="font-semibold text-gray-800 dark:text-gray-100">{{ module.title }}</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ module.lessons.count }} lesson{{ module.lessons.count|pluralize }}</p>
+                             </div>
+                             {% with first_lesson=module.lessons.first %}
+                                {% if first_lesson %}
+                                    <a href="{% url 'lesson_detail' first_lesson.pk %}" class="text-sm text-primary dark:text-primary-light font-medium hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded p-1 flex-shrink-0 ml-4">
+                                        Start Module <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                                    </a>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        {# List Lessons #}
+                        <ul class="list-disc pl-5 space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                            {% for lesson in module.lessons.all %}
+                                <li>
+                                     <a href="{% url 'lesson_detail' lesson.pk %}" class="hover:text-primary dark:hover:text-primary-light">
+                                        {{ lesson.title }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li class="list-none italic text-gray-500 dark:text-gray-400">No lessons in this module yet.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 dark:text-gray-400 italic">No modules defined yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Accordion toggle specific to this page
+    window.toggleAccordion = (id) => {
+        const element = document.getElementById(id);
+        const icon = document.getElementById(id + 'Icon');
+        if (element) element.classList.toggle('hidden');
+        if (icon) {
+            icon.classList.toggle('fa-chevron-up');
+            icon.classList.toggle('fa-chevron-down');
+        }
+    }
+
+    // Ensure objectives accordion starts closed
+    document.addEventListener('DOMContentLoaded', () => {
+        const objectivesSection = document.getElementById('objectives-section');
+        const objectivesIcon = document.getElementById('objectives-sectionIcon');
+        if (objectivesSection && objectivesIcon) {
+            objectivesSection.classList.add('hidden');
+            objectivesIcon.classList.remove('fa-chevron-up');
+            objectivesIcon.classList.add('fa-chevron-down');
+        }
+        // Apply similar logic for module accordions if needed initially closed
+        document.querySelectorAll('[id^="module-"][id$="Icon"]').forEach(icon => {
+            const contentId = icon.id.replace('Icon', '');
+            const contentEl = document.getElementById(contentId);
+            if(contentEl && contentEl.classList.contains('hidden')) { // Check if it should start closed
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+                const button = icon.closest('[role="button"]');
+                if (button) button.setAttribute('aria-expanded', 'false');
+            } else if (contentEl) { // Ensure correct state if starts open
+                 icon.classList.remove('fa-chevron-down');
+                 icon.classList.add('fa-chevron-up');
+                  const button = icon.closest('[role="button"]');
+                  if (button) button.setAttribute('aria-expanded', 'true');
+            }
+        });
+    });
+</script>
+{% endblock %}
