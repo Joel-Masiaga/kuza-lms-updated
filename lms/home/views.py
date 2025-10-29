@@ -705,22 +705,31 @@ class EbookStreamView(View):
             raise Http404("Ebook file not found.")
         if not ebook.is_pdf:
             raise Http404("Ebook is not a PDF.")
-        file_path = ebook.file.path
-        if not os.path.exists(file_path):
-            raise Http404("File missing on server.")
+
+        # --- UPDATED CODE ---
+        # Use Django's storage-aware methods instead of os.path
+        
+        # 1. Check if the file exists using the storage backend
+        if not ebook.file.storage.exists(ebook.file.name):
+            raise Http404("File missing on server storage.")
+
         try:
-            resp = FileResponse(open(file_path, 'rb'), content_type='application/pdf')
+            # 2. Open the file using the storage backend
+            # This works for both local files and Cloudinary files
+            resp = FileResponse(ebook.file.open('rb'), content_type='application/pdf')
+            
+            # --- End of updated code ---
+
             resp['Content-Disposition'] = 'inline'
             resp['X-Content-Type-Options'] = 'nosniff'
             resp['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
             resp['Content-Security-Policy'] = "default-src 'none'; frame-ancestors 'self';"
             return resp
-        except FileNotFoundError:
+        except FileNotFoundError: # This can still happen with local storage
             raise Http404("File missing on server storage.")
         except Exception as e:
             print(f"Error serving ebook {slug}: {e}")
             return HttpResponse("Error serving file.", status=500)
-
 
 @method_decorator(login_required, name='dispatch')
 class CertificateListView(ListView):

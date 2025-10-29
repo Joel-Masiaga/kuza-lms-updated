@@ -13,6 +13,10 @@ class Course(models.Model):
         ('community_health', 'Community Health'),
         ('obstetrics', 'Obstetrics & Gynecology'),
         ('pediatrics', 'Pediatrics'),
+        ('cloud_computing', 'Cloud Computing'),
+        ('python_programming', 'Python Programming'),
+        ('data_science', 'Data Science'),
+        ('django_framework', 'Django Framework'),
     ]
 
     title = models.CharField(max_length=200)
