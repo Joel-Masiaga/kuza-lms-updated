@@ -1,10 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from PIL import Image
-from django.db.models import Sum # Import Sum for calculating points
-import os
+from io import BytesIO
+from django.core.files.base import ContentFile
 
+
+# -------------------------
 # Custom manager for User model
+# -------------------------
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -26,15 +29,19 @@ class UserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
+
+# -------------------------
 # Custom User model with email-based authentication
+# -------------------------
 class User(AbstractUser):
     email = models.EmailField(unique=True, max_length=255)
     username = None  # We are not using the username field
-    role_choices = [
+
+    ROLE_CHOICES = [
         ('student', 'Student'),
         ('instructor', 'Instructor'),
     ]
-    role = models.CharField(max_length=10, choices=role_choices, default='student')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
 
     objects = UserManager()
 
@@ -50,37 +57,61 @@ class User(AbstractUser):
     def is_instructor(self):
         return self.role == 'instructor'
 
+
+# -------------------------
 # Profile model for storing additional user information
+# -------------------------
 class Profile(models.Model):
     image = models.ImageField(default='default.jpg', upload_to='profile_pics/', blank=True, null=True)
     first_name = models.CharField(max_length=30, blank=True, null=True)
-    last_name = models.CharField(max_length=30, blank=True, null=True) 
+    last_name = models.CharField(max_length=30, blank=True, null=True)
     address = models.CharField(max_length=100, blank=True, null=True)
     country = models.CharField(max_length=50, blank=True, null=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='profile')
 
     points = models.PositiveIntegerField(default=0)
     earned_badges = models.ManyToManyField('courses.Course', blank=True, related_name='awarded_to')
-    
-    
+
     def __str__(self):
-        return f"Profile of {self.first_name} {self.last_name} ({self.user.email})"
+        return f"Profile of {self.first_name or ''} {self.last_name or ''} ({self.user.email})"
 
     def save(self, *args, **kwargs):
-        super().save()
+        """
+        Handles image resizing safely for both Cloudinary and local storage.
+        Avoids using .path, which is unsupported by remote storages.
+        """
+        super().save(*args, **kwargs)
 
-        img = Image.open(self.image.path)
+        if self.image:
+            try:
+                # Open the image from storage (works for Cloudinary too)
+                img_file = self.image.open()
+                img = Image.open(img_file)
 
-        if img.height > 300 or img.width > 300:
-            output_size = (300, 300)
-            img.thumbnail(output_size)
-            img.save(self.image.path)
-            
+                # Resize if necessary
+                if img.height > 300 or img.width > 300:
+                    output_size = (300, 300)
+                    img.thumbnail(output_size)
+
+                    # Save resized image into memory
+                    buffer = BytesIO()
+                    img.save(buffer, format='JPEG')
+                    buffer.seek(0)
+
+                    # Replace old image with resized one
+                    self.image.save(self.image.name, ContentFile(buffer.read()), save=False)
+                    super().save(*args, **kwargs)
+            except Exception as e:
+                print(f"Image processing failed: {e}")
+
     @property
     def is_complete(self):
-        return bool((self.first_name or "").strip() and (self.last_name or "").strip()) 
+        return bool((self.first_name or "").strip() and (self.last_name or "").strip())
 
+
+# -------------------------
 # Subscription model for storing user subscriptions
+# -------------------------
 class SubscribedUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='subscription')
     created_at = models.DateTimeField(auto_now_add=True)
