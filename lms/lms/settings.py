@@ -136,7 +136,7 @@ DATABASES = {
 }
 
 #Database connection
-POSTGRES_LOCALLY = True
+POSTGRES_LOCALLY = False
 if ENVIRONMENT == 'production' or POSTGRES_LOCALLY == True:
     DATABASES['default'] = dj_database_url.parse(os.getenv('DATABASE_URL'), conn_max_age=600)
 
@@ -190,8 +190,6 @@ CLOUDINARY_STORAGE = {
 
 
 CKEDITOR_UPLOAD_PATH = "uploads/"
-
-ALLOWED_HOSTS = ['*']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

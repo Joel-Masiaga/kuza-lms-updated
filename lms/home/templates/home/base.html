@@ -613,6 +613,41 @@
         })();
     </script>
 
+    <script>
+    // Mobile Menu Handlers
+    (function() {
+        const mobileL1Toggle = document.getElementById('mobileL1SidebarToggle');
+        const mobileL1Sidebar = document.getElementById('l1-mobile-sidebar');
+        const closeL1Btn = document.getElementById('closeL1Sidebar');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+
+        function openMobileMenu() {
+            mobileL1Sidebar.classList.remove('-translate-x-full');
+            mobileOverlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileMenu() {
+            mobileL1Sidebar.classList.add('-translate-x-full');
+            mobileOverlay.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // Toggle mobile menu
+        mobileL1Toggle.addEventListener('click', openMobileMenu);
+        closeL1Btn.addEventListener('click', closeMobileMenu);
+        mobileOverlay.addEventListener('click', closeMobileMenu);
+
+        // Close menu on wider screens
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) { // md breakpoint
+                closeMobileMenu();
+            }
+        });
+    })();
+</script>
+
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>
