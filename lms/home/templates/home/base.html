@@ -2,12 +2,25 @@
 <!DOCTYPE html>
 <html lang="en" class="">
 <head>
+
+       <script>
+        // Immediately execute theme detection before any CSS loads
+        try {
+            const darkMode = localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.classList[darkMode ? 'add' : 'remove']('dark');
+        } catch (e) {}
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>{% block title %}Kuza Ndoto Academy{% endblock %}</title>
 
-    <link href="{% static 'dist/styles.css' %}" rel="stylesheet">
+    <!-- <link href="{% static 'dist/styles.css' %}" rel="stylesheet"> -->
+     
+        <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
 
@@ -15,16 +28,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
    
-        <script>
-      (function(){
-        try {
-          const stored = localStorage.getItem('theme'); // 'dark'|'light'|null
-          const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          const useDark = stored === 'dark' || (stored === null && prefersDark);
-          document.documentElement.classList.toggle('dark', !!useDark);
-        } catch (e) { /* ignore in very old browsers */ }
-      })();
-    </script>
     
     <style>
         /* --- 1. BRAND & TYPOGRAPHY --- */
@@ -556,94 +559,29 @@
 </script>
     
     <script>
-        // --- Global Theme Toggle ---
+    // Theme Toggle Handler
+    (function() {
         const themeToggle = document.getElementById('themeToggle');
-        const setMode = (isDark) => {
+        if (!themeToggle) return;
+
+        // Update UI to match current theme
+        function updateThemeUI(isDark) {
             document.documentElement.classList.toggle('dark', isDark);
-            localStorage.theme = isDark ? 'dark' : 'light';
-            if(themeToggle) themeToggle.querySelector('i').className = isDark ? 'fas fa-sun text-lg' : 'fas fa-moon text-lg';
+            themeToggle.querySelector('i').className = isDark ? 'fas fa-sun text-lg' : 'fas fa-moon text-lg';
         }
-        const prefersDark = (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        // Ensure theme is set on initial load
-        if (localStorage.theme === 'dark' || prefersDark) {
-            document.documentElement.classList.add('dark');
-            if(themeToggle) themeToggle.querySelector('i').className = 'fas fa-sun text-lg';
-        } else {
-            document.documentElement.classList.remove('dark');
-             if(themeToggle) themeToggle.querySelector('i').className = 'fas fa-moon text-lg';
-        }
-        // Add click listener
-        if (themeToggle) themeToggle.addEventListener('click', () => {
-            setMode(!document.documentElement.classList.contains('dark'));
+
+        // Initialize theme toggle button state
+        const isDark = document.documentElement.classList.contains('dark');
+        updateThemeUI(isDark);
+
+        // Handle theme toggle clicks
+        themeToggle.addEventListener('click', () => {
+            const shouldBeDark = !document.documentElement.classList.contains('dark');
+            localStorage.theme = shouldBeDark ? 'dark' : 'light';
+            updateThemeUI(shouldBeDark);
         });
-
-
-        // --- REPLACED JAVASCRIPT BLOCK ---
-        // --- Mobile L1 (Main) & L2 (Lesson) Sidebar Toggle Logic ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // Shared Element
-            const overlay = document.getElementById('mobile-overlay');
-
-            // L1 (Main Menu) Elements
-            const mobileL1SidebarToggle = document.getElementById('mobileL1SidebarToggle');
-            const l1MobileSidebar = document.getElementById('l1-mobile-sidebar');
-            const closeL1Sidebar = document.getElementById('closeL1Sidebar');
-
-            // L2 (Lesson Menu) Elements
-            const mobileL2SidebarToggle = document.getElementById('mobileL2SidebarToggle');
-            const lessonSidebar = document.getElementById('lessonSidebar');
-            const closeL2Sidebar = document.getElementById('closeL2Sidebar');
-
-            // --- Reusable Functions ---
-
-            // Generic closer for all menus
-            const closeAllMobileMenus = () => {
-                if(l1MobileSidebar) l1MobileSidebar.classList.add('-translate-x-full');
-                if(lessonSidebar) lessonSidebar.classList.add('-translate-x-full');
-                if(overlay) overlay.classList.add('hidden');
-            }
-
-            // L1 Opener (closes L2)
-            const openL1Menu = () => {
-                if(l1MobileSidebar) l1MobileSidebar.classList.remove('-translate-x-full');
-                if(lessonSidebar) lessonSidebar.classList.add('-translate-x-full');
-                if(overlay) overlay.classList.remove('hidden');
-            }
-            
-            // L2 Opener (closes L1)
-            const openL2Menu = () => {
-                if(lessonSidebar) lessonSidebar.classList.remove('-translate-x-full');
-                if(l1MobileSidebar) l1MobileSidebar.classList.add('-translate-x-full');
-                if(overlay) overlay.classList.remove('hidden');
-            }
-
-            // --- Event Listeners ---
-
-            // L1 (Main Menu) Listeners
-            if (mobileL1SidebarToggle && l1MobileSidebar) {
-                mobileL1SidebarToggle.addEventListener('click', openL1Menu);
-            }
-            if (closeL1Sidebar) {
-                closeL1Sidebar.addEventListener('click', closeAllMobileMenus);
-            }
-
-            // L2 (Lesson Menu) Listeners
-            if (mobileL2SidebarToggle && lessonSidebar) {
-                mobileL2SidebarToggle.addEventListener('click', openL2Menu);
-            }
-            if (closeL2Sidebar) {
-                closeL2Sidebar.addEventListener('click', closeAllMobileMenus);
-            }
-            
-            // Overlay Listener
-            if (overlay) {
-                overlay.addEventListener('click', closeAllMobileMenus);
-            }
-
-            // NOTE: Removed base-level Notes panel toggle handlers to avoid conflicts with page-specific note logic.
-            // Pages (like lesson.html) should implement notes toggling themselves using the #notes-panel and #toggle-notes-btn elements.
-        });
-    </script>
+    })();
+</script>
 
     <script>
         (function () {
