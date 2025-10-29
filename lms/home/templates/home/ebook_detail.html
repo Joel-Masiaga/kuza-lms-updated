@@ -384,13 +384,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (e.key === '-') { e.preventDefault(); zoomOut && zoomOut.click(); }
   });
 
-  // Touch swipe
-  let touchStartX = 0;
-  wrap.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].clientX; }, {passive:true});
-  wrap.addEventListener('touchend', (e) => {
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 40) dx < 0 ? nextBtn.click() : prevBtn.click();
-  }, {passive:true});
   {% endif %}
 });
 </script>

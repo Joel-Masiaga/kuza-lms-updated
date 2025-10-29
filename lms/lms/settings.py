@@ -67,7 +67,6 @@ INSTALLED_APPS = [
     'tinymce',
     'django_bootstrap5',
 
-    'tailwind',
     'theme',
     'django_browser_reload',
 
@@ -125,7 +124,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'lms.wsgi.application'
 
 SITE_ID = 1 
-
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -225,12 +223,15 @@ SOCIALACCOUNT_PROVIDERS = {
         },
         'AUTH_PARAMS': {
             'access_type':'online',
-        }
+        },
+                # Add these settings
+        'OAUTH_PKCE_ENABLED': True,
+        'MOBILE_FLOW_ENABLED': True,
     }
 }
 
 # Configure django-allauth to use email instead of username
-ACCOUNT_LOGIN_METHOD = "email"
+ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_USERNAME_REQUIRED = False  # Disable username requirement
 ACCOUNT_EMAIL_REQUIRED = True  # Require email
 ACCOUNT_UNIQUE_EMAIL = True
@@ -243,9 +244,11 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
 
-LOGIN_REDIRECT_URL = 'home'
+LOGIN_REDIRECT_URL = '/'
+MOBILE_LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'
+
 
 TINYMCE_DEFAULT_CONFIG = {
     'height': 800,

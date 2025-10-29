@@ -11,31 +11,31 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-      <!-- Categories -->
       <aside class="col-span-1">
         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-          <h3 class="font-semibold mb-3">Categories</h3>
-          <ul class="space-y-2 text-sm">
-            <li>
-              <a href="{% url 'ebook_list' %}" class="block px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 {% if not selected_category %}bg-primary-light text-primary{% endif %}">
-                All ({{ ebooks.count }})
-              </a>
-            </li>
+          
+          <label for="category_select" class="block font-semibold mb-2 text-sm text-gray-900 dark:text-white">Categories</label>
+          <select id="category_select" 
+                  onchange="window.location.href = this.value;"
+                  class="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-3 text-sm text-gray-900 dark:text-white focus:ring-primary focus:border-primary">
+            
+            <option value="{% url 'ebook_list' %}" 
+                    {% if not selected_category %}selected{% endif %}>
+              All ({{ ebooks.count }})
+            </option>
+
             {% for cat in categories %}
-              <li>
-                <a href="{% url 'ebook_list' %}?category={{ cat.slug }}"
-                   class="block px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 {% if selected_category and selected_category.id == cat.id %}bg-primary-light text-primary{% endif %}">
-                  {{ cat.name }} {% if cat.ebook_count %} ({{ cat.ebook_count }}){% endif %}
-                </a>
-              </li>
+            <option value="{% url 'ebook_list' %}?category={{ cat.slug }}" 
+                    {% if selected_category and selected_category.id == cat.id %}selected{% endif %}>
+              {{ cat.name }} {% if cat.ebook_count %} ({{ cat.ebook_count }}){% endif %}
+            </option>
             {% empty %}
-              <li class="text-sm text-gray-500">No categories</li>
+             <option disabled>No categories</option>
             {% endfor %}
-          </ul>
-        </div>
+          </select>
+          </div>
       </aside>
 
-      <!-- Ebook cards -->
       <section class="col-span-3">
         {% if ebooks %}
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -67,8 +67,7 @@
                     <div class="text-xs text-gray-500">Published: {{ ebook.created_at|date:"M j, Y" }}</div>
                     <div class="flex items-center space-x-2">
                       <a href="{% url 'ebook_detail' ebook.slug %}" class="inline-block bg-primary text-white px-3 py-1 rounded hover:bg-primary-dark text-sm">Read</a>
-                      <!-- No download link provided -->
-                    </div>
+                      </div>
                   </div>
                 </div>
               </article>

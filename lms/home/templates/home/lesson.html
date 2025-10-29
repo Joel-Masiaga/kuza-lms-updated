@@ -1,11 +1,12 @@
 {% extends 'home/base.html' %}
 {% load static %}
-{% load custom_filters %} {# Make sure this templatetag exists and works #}
+{% load custom_filters %}
 
 {% block title %}{{ lesson.title }} - {{ lesson.module.course.title }}{% endblock %}
 
 {% block extra_css %}
 <style>
+
     /* Notes panel animation */
     #notes-panel {
         max-height: 0;
@@ -88,14 +89,150 @@
   }
 }
 
-    
+/* ---------- MOBILE SIDEBAR (card list) ---------- */
+/* Make sidebar full-width and card-like on small screens */
+@media (max-width: 767px) {
+  #lessonSidebar {
+    width: 100% !important;
+    left: 0;
+    right: 0;
+    top: 56px; /* leave navbar area */
+    height: auto;
+    max-height: calc(100vh - 56px);
+    background: transparent;
+    padding: 0 0 1rem;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  #lessonSidebarContent {
+    padding: 0.75rem 0.75rem 2rem;
+    background: transparent;
+  }
+
+  /* Replace dense module accordion header with large card button */
+  .module-accordion-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.1rem 1rem;
+    background: #ffffff;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    margin-bottom: 0.6rem;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+  }
+  .module-accordion-trigger:hover { background: #f7f7f8; }
+
+  /* Move chevron to far right */
+  .module-accordion-trigger .accordion-icon {
+    margin-left: auto;
+    color: #6b7280; /* gray-500 */
+    font-size: 0.95rem;
+  }
+
+  /* Hide the small circle icon for lessons on mobile for a simplified list view */
+  .lesson-link > .flex > span:first-child {
+    display: none;
+  }
+
+  /* Make lesson rows full-width simple rows like screenshot */
+  .module-accordion-content {
+    margin-top: 0.5rem;
+    padding-left: 0;
+  }
+
+  .lesson-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: #ffffff;
+    border: 1px solid #f1f1f1;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .lesson-link:hover { background: #f7f7f8; }
+
+  .lesson-link .truncate { margin-left: 0; }
+
+  /* Selected lesson should appear highlighted */
+  .lesson-link.bg-white, .lesson-link.bg-white.dark\:bg-gray-900 {
+    background: #eef2f7; /* subtle selected tint */
+    border-color: rgba(59,130,246,0.12); /* primary tint */
+    box-shadow: none;
+  }
+
+  /* make the "completed" / circle icons subdued at right */
+  .lesson-link i.fas.fa-check-circle, .lesson-link i.far.fa-circle {
+    margin-left: 0.5rem;
+    color: #9ca3af; /* gray-400 */
+    font-size: 1rem;
+  }
+
+  /* spacing adjustments inside sidebar header area (close button row) */
+  #lessonSidebar > .flex.items-center.justify-between.p-4.md\:hidden {
+    padding: 0.75rem 0.75rem;
+  }
+
+  /* Ensure module list scrolls independently if tall */
+  #lessonSidebar .flex-grow.overflow-y-auto.p-4 {
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    padding: 0.75rem;
+  }
+}
+
+/* ---------- IN-PAGE MOBILE MENU (NEW) ---------- */
+.mobile-lesson-menu { width: 100%; }
+.mobile-lesson-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 10px;
+  padding: .75rem 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.mobile-lesson-toggle .title { font-weight: 600; }
+.mobile-lesson-list { margin-top: .75rem; display: none; }
+.mobile-lesson-list.open { display: block; }
+
+.mobile-module-card {
+  background: #fff;
+  border: 1px solid #e9e9ee;
+  border-radius: 10px;
+  padding: .9rem;
+  margin-bottom: .6rem;
+  box-shadow: none;
+}
+.mobile-module-card .module-head { display:flex; align-items:center; justify-content:space-between; gap:.6rem; cursor:pointer; }
+.mobile-module-card .module-head:hover { background: #f7f7f8; border-radius: 8px; }
+.mobile-module-card .module-lessons { margin-top:.6rem; padding-left:0; }
+.mobile-lesson-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:.9rem; background:#fff; border:1px solid #f2f2f4; border-radius:8px; margin-bottom:.5rem; text-decoration:none; color:inherit;
+}
+.mobile-lesson-row .meta { font-size:.9rem; color:#6b7280; }
+
+@media (min-width: 768px) {
+  /* hide the in-page mobile menu on larger screens */
+  .mobile-lesson-menu { display:none; }
+}
+
+/* keep other existing desktop styles intact */
 </style>
 {% endblock %}
 
-{% block show_mobile_l2_toggle %} {% comment %} Make menu button visible {% endcomment %} {% endblock %}
-
 {% block content %}
-<div class="flex flex-1 overflow-hidden pb-10">
+<div class="flex flex-1 overflow-hidden">
     <aside id="lessonSidebar" class="bg-gray-50 dark:bg-gray-800 w-72 flex-shrink-0 flex flex-col shadow-lg z-30 absolute inset-y-0 left-0 pt-16 md:pt-0 transform -translate-x-full md:static md:translate-x-0 transition-transform duration-300 h-full">
         <div class="flex items-center justify-between p-4 md:hidden border-b border-gray-200 dark:border-gray-700">
             <h2 class="text-xl font-bold text-gray-900 dark:text-white truncate" title="{{ lesson.module.course.title }}">{{ lesson.module.course.title }}</h2>
@@ -170,6 +307,47 @@
                     <li><span class="font-medium text-gray-800 dark:text-white p-1">{{ lesson.title }}</span></li>
                 </ol>
             </nav>
+
+                       <!-- Mobile in-page menu (collapsible stacked cards) -->
+            <div class="mobile-lesson-menu md:hidden max-w-5xl mx-auto px-4 mb-4">
+              <button id="mobile-menu-toggle" aria-expanded="false" class="mobile-lesson-toggle">
+                <span class="menu-icon" aria-hidden="true"><i class="fas fa-bars"></i></span>
+                <span class="title">Course Content</span>
+                <i id="mobile-menu-icon" class="fas fa-chevron-down text-gray-500"></i>
+              </button>
+
+              <div id="mobile-menu-list" class="mobile-lesson-list">
+                {% for module_item in all_course_modules %}
+                  <div class="mobile-module-card" data-module-id="{{ module_item.id }}">
+                    <div class="module-head" data-controls="mobile-module-{{ module_item.id }}" tabindex="0" role="button" aria-expanded="{% if module_item.id == lesson.module.id %}true{% else %}false{% endif %}">
+                      <div class="font-semibold {% if module_item.id == lesson.module.id %}text-primary-darker{% else %}text-gray-900{% endif %}">{{ module_item.title }}</div>
+                      <i class="mobile-accordion-icon fas {% if module_item.id == lesson.module.id %}fa-chevron-up{% else %}fa-chevron-down{% endif %} text-gray-500"></i>
+                    </div>
+
+                    <ul id="mobile-module-{{ module_item.id }}" class="module-lessons {% if not module_item.id == lesson.module.id %}hidden{% endif %}">
+                      {% for lesson_item in module_item.lessons.all %}
+                        <li>
+                          <a href="{% url 'lesson_detail' lesson_item.pk %}" class="mobile-lesson-row" data-lesson-id="{{ lesson_item.id }}">
+                            <div>
+                              <div class="font-medium">{{ lesson_item.title }}</div>
+                              <div class="meta">Est. 5:00</div>
+                            </div>
+                            <div>
+                              {% if lesson_item.id in read_lesson_ids %}
+                                <i class="fas fa-check-circle text-green-500"></i>
+                              {% else %}
+                                <i class="far fa-circle text-gray-400"></i>
+                              {% endif %}
+                            </div>
+                          </a>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>  
+
             <div id="lesson-content-wrapper" class="max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden">
                 <div class="p-6 sm:p-8 border-b border-gray-200 dark:border-gray-700">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -263,10 +441,6 @@
                                 <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
                             </div>
                             </div>
-
-
-
-
 
                         </div>
                         <hr class="border-gray-200 dark:border-gray-700 my-6">
@@ -368,6 +542,39 @@
             trigger.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAccordion(contentId, trigger); }
             });
+        });
+
+        // Mobile in-page menu behavior
+        const mmToggle = document.getElementById('mobile-menu-toggle');
+        const mmList = document.getElementById('mobile-menu-list');
+        const mmIcon = document.getElementById('mobile-menu-icon');
+
+        if (mmToggle && mmList) {
+          mmToggle.addEventListener('click', function(){
+            const open = mmList.classList.toggle('open');
+            mmToggle.setAttribute('aria-expanded', String(open));
+            mmIcon.classList.toggle('fa-chevron-down', !open);
+            mmIcon.classList.toggle('fa-chevron-up', open);
+          });
+          mmToggle.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mmToggle.click(); } });
+        }
+
+        // module accordion inside mobile list
+        document.querySelectorAll('.mobile-module-card .module-head').forEach(head => {
+          head.addEventListener('click', () => {
+            const targetId = head.getAttribute('data-controls') || head.dataset.controls;
+            const list = document.getElementById(targetId);
+            if (!list) return;
+            const isHidden = list.classList.contains('hidden');
+            list.classList.toggle('hidden', !isHidden);
+            head.setAttribute('aria-expanded', String(isHidden));
+            const icon = head.querySelector('.mobile-accordion-icon');
+            if (icon) {
+              icon.classList.toggle('fa-chevron-up', isHidden);
+              icon.classList.toggle('fa-chevron-down', !isHidden);
+            }
+          });
+          head.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); head.click(); } });
         });
 
         // Notes panel logic

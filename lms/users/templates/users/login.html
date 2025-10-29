@@ -1,12 +1,10 @@
 {% load static %}
-{% load tailwind_tags %}
 {% load crispy_forms_tags %}
 {% load socialaccount %}
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  {% tailwind_css %}
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kuza Ndoto Academy | Login</title>
@@ -15,31 +13,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link href="{% static 'dist/styles.css' %}" rel="stylesheet">
  
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              DEFAULT: '#00878d',
-              '100': '#e0f2f2',
-              '200': '#b3dfdf',
-              '300': '#80cbcb',
-              '400': '#4db6b6',
-              '500': '#26a69a',
-              '600': '#00878d',
-              '700': '#00696d',
-              '800': '#004f52',
-              '900': '#00383b',
-            },
-          },
-        },
-      },
-    };
-  </script>
-
   <style>
     body {
       background: url('https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=1920&q=80')
@@ -83,15 +59,15 @@
       <a href="{% provider_login_url 'google' %}"
          class="w-full sm:flex-1 bg-none hover:bg-green-600 py-3 rounded-lg transition flex items-center justify-center space-x-3 shadow border border-gray-200 text-white"
          aria-label="Sign in with Google">
-        <i class="fa-brands fa-google text-2xl px-4"></i>
-        <span class="font-semibold text-sm text-white">Sign in with Google</span>
+        <i class="fa-brands fa-google text-2xl px-2"></i>
+        <span class="font-semibold text-sm text-white">Sign in Google</span>
       </a>
 
       <a href="#"
          class="w-full sm:flex-1 bg-none hover:bg-green-600 py-3 rounded-lg transition flex items-center justify-center space-x-3 shadow border border-gray-200 text-white"
          aria-label="Sign in with GitHub">
-        <i class="fa-brands fa-github text-2xl px-4"></i>
-        <span class="font-semibold text-sm text-white">Sign in with GitHub</span>
+        <i class="fa-brands fa-github text-2xl px-2"></i>
+        <span class="font-semibold text-sm text-white">Sign in GitHub</span>
       </a>
     </div>
 

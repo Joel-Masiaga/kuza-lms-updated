@@ -26,7 +26,12 @@ def chatAPI(request):
 
         logger.info(f"User prompt: {prompt}")
 
-        response = model.generate_content(prompt)
+        # --- Modification Start ---
+        # Append the length constraint to the user's prompt
+        constrained_prompt = f"{prompt}\n\nAnswer in less than 50 words."
+        # --- Modification End ---
+
+        response = model.generate_content(constrained_prompt) # <-- Use the modified prompt
         ai_response = (response.text or "").strip()
 
         if not ai_response:

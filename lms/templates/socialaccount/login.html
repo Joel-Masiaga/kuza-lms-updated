@@ -1,35 +1,34 @@
-{% load static tailwind_tags %}
+{% load static %}
 {% load socialaccount %}
 
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    {% tailwind_css %}
+    <html lang="en">
+    <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Social Login - Kuza Ndoto Academy</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="./output.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="{% static 'dist/styles.css' %}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
-</head>
-<body class="font-sans bg-green-600 text-white min-h-screen flex items-center justify-center">
+    </head>
+    <body class="font-sans bg-green-600 text-white min-h-screen flex items-center justify-center">
 
-    <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 class="text-2xl font-semibold mb-4 text-center">Welcome to Kuza Ndoto Academy!</h2>
-        <p class="text-gray-300 mb-6 text-center">You are about to sign in using your Google account.</p>
+        <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-2xl font-semibold mb-4 text-center">Welcome to Kuza Ndoto Academy!</h2>
+            <p class="text-gray-300 mb-6 text-center">You are about to sign in using your Google account.</p>
 
-        <form method="post" class="space-y-4">
-            {% csrf_token %}
-            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex items-center justify-center gap-3">
-            <!-- Google "G" icon -->
-            <i class="fa-brands fa-google text-sm px-3"></i>
-            <span>Continue with Google</span>
-            </button>
-        </form>
-    </div> 
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex items-center justify-center gap-3">
+                <!-- Google "G" icon -->
+                <i class="fa-brands fa-google text-sm px-3"></i>
+                <span>Continue with Google</span>
+                </button>
+            </form>
+        </div> 
 
-</body>
+    </body>
 </html>

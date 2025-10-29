@@ -29,7 +29,7 @@
 <main class="flex-1 px-4 py-4 pb-20 sm:p-6 overflow-y-auto">
 <!-- Banner -->
     <section class="bg-primary dark:bg-primary-dark p-6 rounded-lg shadow-lg mb-6 text-white relative overflow-hidden">
-        <h1 class="text-3xl font-bold mb-2 relative z-10">
+        <h1 class="text-2xl font-bold mb-2 relative z-10">
             Welcome Back,
             {% if user.is_authenticated %}
                 {% with first_name=user.profile.first_name|default:user.first_name|default:'' %}
@@ -39,24 +39,24 @@
                 Guest! <span class="wave-emoji" aria-hidden="true">👋</span>
             {% endif %}
         </h1>
-        <p class="text-gray-100 mb-4 relative z-10">Ready to dive back in? Let's make today productive!</p>
+        <p class="text-gray-100 mb-4 relative z-10">Let's make today productive!</p>
 
         <div class="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
-                <span class="block text-2xl font-bold">{{ in_progress_courses|length }}</span>
-                <span class="block text-xs uppercase opacity-80">Courses in Progress</span>
+                <span class="block text-xl font-bold">{{ in_progress_courses|length }}</span>
+                <span class="block text-xs opacity-80">Courses in Progress</span>
             </div>
             <div>
-                <span class="block text-2xl font-bold">{{ completed_courses|length }}</span>
-                <span class="block text-xs uppercase opacity-80">Completed</span>
+                <span class="block text-xl font-bold">{{ completed_courses|length }}</span>
+                <span class="block text-xs opacity-80">Completed</span>
             </div>
             <div>
-                <span class="block text-2xl font-bold">{{ user_points|default:0 }}</span>
-                <span class="block text-xs uppercase opacity-80">Points Earned</span>
+                <span class="block text-xl font-bold">{{ user_points|default:0 }}</span>
+                <span class="block text-xs opacity-80">Points Earned</span>
             </div>
             <div>
-                <span class="block text-2xl font-bold">{{ user_badges|default:0 }}</span>
-                <span class="block text-xs uppercase opacity-80">Badges</span>
+                <span class="block text-xl font-bold">{{ user_badges|default:0 }}</span>
+                <span class="block text-xs opacity-80">Badges</span>
             </div>
         </div>
 

@@ -4,6 +4,6 @@
     "tailwindcss": "^4.1.16"
   },
   "scripts": {
-    "watch:css" : "npx @tailwindcss/cli -i ./lms/static/src/styles.css -o ./lms/static/dist/styles.css --watch"
+    "watch:css" : "npx @tailwindcss/cli -i ./static/src/styles.css -o ./static/dist/styles.css --watch"
   }
 }
