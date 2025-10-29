@@ -136,7 +136,7 @@ DATABASES = {
 }
 
 #Database connection
-POSTGRES_LOCALLY = True
+POSTGRES_LOCALLY = False
 if ENVIRONMENT == 'production' or POSTGRES_LOCALLY == True:
     DATABASES['default'] = dj_database_url.parse(os.getenv('DATABASE_URL'), conn_max_age=600)
 
@@ -178,7 +178,9 @@ import os
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
+#Adjusted for Render
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static/dist')]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
