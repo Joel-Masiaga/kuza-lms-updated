@@ -42,6 +42,16 @@ class CourseAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     inlines = [ModuleInline]
 
+
+    def save_model(self, request, obj, form, change):
+        """
+        When creating a new course, set the created_by
+        field to the current user.
+        """
+        if not obj.pk: # This means the object is new (not being changed)
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.annotate(
