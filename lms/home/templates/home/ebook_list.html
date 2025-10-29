@@ -3,7 +3,7 @@
 {% block title %}eBooks — Kuza Ndoto Academy{% endblock %}
 
 {% block content %}
-<main class="flex-1 p-6 overflow-y-auto">
+<main class="flex-1 p-4 md:p-6 pb-24 overflow-y-auto">
   <div class="max-w-6xl mx-auto">
     <div class="mb-6 flex items-center justify-between">
       <h2 class="text-2xl font-semibold">eBooks</h2>
@@ -17,8 +17,7 @@
           <label for="category_select" class="block font-semibold mb-2 text-sm text-gray-900 dark:text-white">Categories</label>
           <select id="category_select" 
                   onchange="window.location.href = this.value;"
-                  class="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-3 text-sm text-gray-900 dark:text-white focus:ring-primary focus:border-primary">
-            
+                  class="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2 md:p-3 text-xs md:text-sm text-gray-900 dark:text-white focus:ring-primary focus:border-primary">
             <option value="{% url 'ebook_list' %}" 
                     {% if not selected_category %}selected{% endif %}>
               All ({{ ebooks.count }})

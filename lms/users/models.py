@@ -62,7 +62,7 @@ class User(AbstractUser):
 # Profile model for storing additional user information
 # -------------------------
 class Profile(models.Model):
-    image = models.ImageField(default='default.jpg', upload_to='profile_pics/', blank=True, null=True)
+    image = models.ImageField(default='default.jpg', upload_to='profiles/', blank=True, null=True)
     first_name = models.CharField(max_length=30, blank=True, null=True)
     last_name = models.CharField(max_length=30, blank=True, null=True)
     address = models.CharField(max_length=100, blank=True, null=True)

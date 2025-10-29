@@ -14,8 +14,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+   
+        <script>
+      (function(){
+        try {
+          const stored = localStorage.getItem('theme'); // 'dark'|'light'|null
+          const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const useDark = stored === 'dark' || (stored === null && prefersDark);
+          document.documentElement.classList.toggle('dark', !!useDark);
+        } catch (e) { /* ignore in very old browsers */ }
+      })();
+    </script>
     
     <style>
         /* --- 1. BRAND & TYPOGRAPHY --- */

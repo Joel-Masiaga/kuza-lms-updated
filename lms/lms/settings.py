@@ -136,7 +136,7 @@ DATABASES = {
 }
 
 #Database connection
-POSTGRES_LOCALLY = True
+POSTGRES_LOCALLY = False
 if ENVIRONMENT == 'production' or POSTGRES_LOCALLY == True:
     DATABASES['default'] = dj_database_url.parse(os.getenv('DATABASE_URL'), conn_max_age=600)
 
@@ -219,15 +219,12 @@ SOCIALACCOUNT_PROVIDERS = {
         },
         'AUTH_PARAMS': {
             'access_type':'online',
-        },
-                # Add these settings
-        'OAUTH_PKCE_ENABLED': True,
-        'MOBILE_FLOW_ENABLED': True,
+        }
     }
 }
 
 # Configure django-allauth to use email instead of username
-ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_LOGIN_METHOD = "email"
 ACCOUNT_USERNAME_REQUIRED = False  # Disable username requirement
 ACCOUNT_EMAIL_REQUIRED = True  # Require email
 ACCOUNT_UNIQUE_EMAIL = True
@@ -354,7 +351,7 @@ if ENVIRONMENT == 'production' or POSTGRES_LOCALLY:
             "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
         },
         "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
         },
     }
 else:

@@ -5,11 +5,11 @@
 
 {% block content %}
 <main class="flex-1 pt-4 pb-16 sm:p-6 bg-gray-100 dark:bg-gray-900 overflow-y-auto">
-    <h1 class="text-3xl m-6 font-bold text-gray-900 dark:text-white mb-6">My Certificates 🏅</h1>
+    <h1 class="text-2xl m-6 font-bold text-gray-900 dark:text-white mb-6">My Certificates 🏅</h1>
 
     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
         {% if certificates %}
-            <p class="text-gray-600 dark:text-gray-300 mb-6">Congratulations on your achievements! Download your earned certificates below.</p>
+            <p class="text-gray-600 dark:text-gray-300 mb-6">Congratulations on your achievements! <br>Download your earned certificates below.</p>
             <div class="border-t dark:border-gray-700 pt-6 space-y-4">
                 {% for certificate in certificates %}
                 <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600">
