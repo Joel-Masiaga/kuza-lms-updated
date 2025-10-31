@@ -404,13 +404,13 @@
 
                     {# Video block (existing) #}
                     {% if lesson.videos.exists %}
-                        <h5 class="mb-4 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white not-prose">🎥 Watch Videos</h5>
+                        <h5 class="mb-4 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white not-prose">🎥 Watch Lesson</h5>
                         {% for video in lesson.videos.all %}
                             <p class="font-medium text-gray-800 dark:text-gray-100">{{ video.title }}</p>
                             <div class="relative aspect-video mb-6 bg-gray-200 dark:bg-black rounded-lg overflow-hidden">
                                 {% with video.video_url|extract_video_id as video_id %}
                                     {% if video_id %}
-                                        <iframe src="https://www.youtube.com/embed/{{ video_id }}" allowfullscreen class="absolute top-0 left-0 w-full h-full"></iframe>
+                                        <iframe src="https://www.youtube.com/embed/{{ video_id }}" allowfullscreen class="absolute top-0 left-0 w-full h-full" referrerpolicy="strict-origin-when-cross-origin"></iframe>
                                     {% else %}
                                         <p class="p-4 text-red-600">Could not extract video ID from URL: {{ video.video_url }}</p>
                                     {% endif %}

@@ -15,10 +15,10 @@
 
     <title>{% block title %}Kuza Ndoto Academy{% endblock %}</title>
 
-    <!-- <link href="{% static 'dist/styles.css' %}" rel="stylesheet"> -->
+    <link href="{% static 'styles.css' %}" rel="stylesheet">
      
-        <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+        <!-- Tailwind CSS CDN
+    <script src="https://cdn.tailwindcss.com"></script> -->
 
     
 
@@ -353,36 +353,40 @@
 </div>
 
 <div id="chatbotBox"
-     class="hidden fixed bottom-20 right-6 z-50 w-80 sm:w-96 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
-  <div class="flex items-center p-4 bg-primary text-white">
-    <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary-dark ring-2 ring-white/70">
-      <i class="fas fa-robot text-lg"></i>
+     class="hidden fixed bottom-16 sm:bottom-20 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
+  
+  <!-- Header: Reduced padding, icon size, font size, and close button size for mobile -->
+  <div class="flex items-center p-2 sm:p-4 bg-primary text-white">
+    <span class="inline-flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-primary-dark ring-2 ring-white/70">
+      <i class="fas fa-robot text-base sm:text-lg"></i>
     </span>
-    <div class="ml-3">
-      <h4 class="text-base font-semibold leading-tight">Revise with Tabby</h4>
+    <div class="ml-2 sm:ml-3">
+      <h4 class="text-sm sm:text-base font-semibold leading-tight">Revise with Tabby</h4>
       <p class="text-xs text-white/80">Your study buddy</p>
     </div>
     <button id="closeChatbot"
-            class="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            class="ml-auto inline-flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-md hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             aria-label="Close chatbot">
-      <i class="fas fa-times text-lg"></i>
+      <i class="fas fa-times text-base sm:text-lg"></i>
     </button>
   </div>
 
-  <div class="p-4 space-y-3 h-64 overflow-y-auto bg-gray-50 dark:bg-gray-800">
-    <p class="text-white text-sm font-semibold text-center py-2 rounded-md bg-primary shadow-sm">
+  <!-- Chat Area: Reduced height and welcome message size for mobile -->
+  <div class="p-2 sm:p-4 space-y-2 sm:space-y-3 h-60 sm:h-64 overflow-y-auto bg-gray-50 dark:bg-gray-800">
+    <p class="text-white text-xs sm:text-sm font-semibold text-center py-1.5 sm:py-2 rounded-md bg-primary shadow-sm">
       How can I help you today?
     </p>
     <p class="text-xs text-gray-500 dark:text-gray-400 text-center">Powered by Gemini</p>
-    <div id="chatMessages" class="space-y-3"></div>
+    <div id="chatMessages" class="space-y-2 sm:space-y-3"></div>
   </div>
 
-  <form id="chatForm" class="flex items-end gap-2 p-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+  <!-- Form: Reduced padding, gap, textarea padding, and button size for mobile -->
+  <form id="chatForm" class="flex items-end gap-1.5 sm:gap-2 p-2 sm:p-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
     {% csrf_token %}
     <textarea id="userInput" rows="1" placeholder="Ask me a question..."
-              class="flex-1 resize-none px-3 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400 ring-1 ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-primary focus:outline-none"></textarea>
+              class="flex-1 resize-none px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400 ring-1 ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-primary focus:outline-none"></textarea>
     <button type="submit"
-            class="shrink-0 inline-flex items-center justify-center h-10 w-10 rounded-lg bg-primary hover:bg-primary-dark text-white shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+            class="shrink-0 inline-flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-primary hover:bg-primary-dark text-white shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
             aria-label="Send">
       <i class="fas fa-paper-plane text-sm"></i>
     </button>

@@ -54,7 +54,8 @@
 /* Canvas wrapper - centered and roomy */
 #pdf-canvas-wrap {
   display:flex; align-items:center; justify-content:center; width:100%;
-  height: calc(82vh); min-height:480px; box-sizing:border-box; overflow:auto; padding:1.25rem;
+  /* CHANGED: Reduced min-height */
+  height: calc(82vh); min-height:380px; box-sizing:border-box; overflow:auto; padding:1.25rem;
   background:transparent; position:relative; border-radius:0.75rem; border:1px solid rgba(15,23,42,0.04);
 }
 
@@ -88,7 +89,8 @@
 }
 @media (max-width: 560px) {
   .pdf-controls { flex-direction:column; align-items:stretch; gap:0.5rem; }
-  .pdf-controls .left, .pdf-controls .right { width:100%; justify-content:space-between; }
+  /* CHANGED: justify-content:space-between -> justify-content:center */
+  .pdf-controls .left, .pdf-controls .right { width:100%; justify-content:center; }
   #pdf-canvas-wrap { padding:0.5rem; min-height:260px; }
 }
 
@@ -100,11 +102,11 @@
 {% endblock %}
 
 {% block content %}
-<main class="flex-1 p-6 overflow-y-auto">
+<main class="flex-1 p-2 sm:p-6 overflow-y-auto">
   <div class="reader-full">
     <div class="reader-top text-center mb-4">
-      <a href="{% url 'ebook_list' %}" class="reader-back inline-block mb-2">← Back to eBooks</a>
-      <div class="text-xs text-gray-500">Contact Admin to request Copy</div>
+      <a href="{% url 'ebook_list' %}" class="reader-back inline-block mb-2">← Back</a>
+      <div class="text-xs text-gray-500">Contact Admin for Copy</div>
     </div>
 
     {% if not ebook.allow_preview %}
@@ -113,13 +115,13 @@
       <section class="bg-transparent">
         <div id="pdf-viewer" class="pdf-viewer-wrap" role="region" aria-label="ebook reader">
           <div class="pdf-controls justify-center" role="toolbar" aria-label="PDF controls">
-            <div class="left flex items-center gap-3">
+            <div class="left flex items-center flex-wrap justify-center gap-2 sm:gap-3">
               <div class="flex items-center gap-1">
                 <button id="pdf-prev" class="pdf-btn nav-btn" title="Previous page" aria-label="Previous page">‹</button>
                 <button id="pdf-next" class="pdf-btn nav-btn" title="Next page" aria-label="Next page">›</button>
               </div>
 
-              <div class="flex items-center gap-3">
+              <div class="flex items-center flex-wrap justify-center gap-2 sm:gap-3">
                 <span class="label text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
                   Page <strong id="pdf-page-num">1</strong> / <strong id="pdf-page-count">1</strong>
                 </span>
@@ -131,7 +133,7 @@
               </div>
             </div>
 
-            <div class="right flex items-center gap-2">
+            <div class="right flex items-center flex-wrap justify-center gap-1.5 sm:gap-2">
               <div class="flex items-center gap-1">
                 <button id="pdf-zoom-out" class="pdf-btn zoom-btn" title="Zoom out" aria-label="Zoom out">−</button>
                 <button id="pdf-zoom-in" class="pdf-btn zoom-btn" title="Zoom in" aria-label="Zoom in">+</button>
@@ -144,7 +146,7 @@
             </div>
           </div>
 
-          <div class="flex-1 flex justify-center items-center p-2">
+          <div class="flex-1 flex justify-center items-center p-1 sm:p-2">
             <div id="pdf-canvas-wrap" class="rounded-lg overflow-hidden w-full flex justify-center items-center">
               <div id="pdf-error">Unable to render PDF page.</div>
               <div class="pdf-canvas-inner flex justify-center items-center">
