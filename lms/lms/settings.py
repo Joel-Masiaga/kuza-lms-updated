@@ -408,6 +408,7 @@ INSTALLED_APPS = [
     'ckeditor_uploader',
     'tinymce',
     'django_bootstrap5',
+    'django-resized',
 
     'theme',
     'django_browser_reload',
