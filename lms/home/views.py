@@ -14,6 +14,8 @@ from users.models import User, Profile
 from django.conf import settings
 import cloudinary
 import cloudinary.utils
+import urllib.request
+import urllib.error
 
 # Gamification constants
 POINTS_PER_LESSON = 10
@@ -687,13 +689,13 @@ class EbookListView(TemplateView):
         return context
 
 
-@method_decorator(login_required, name='dispatch')
 class EbookDetailView(View):
     def get(self, request, slug):
         ebook = get_object_or_404(Ebook.objects.select_related('category'), slug=slug, published=True)
         if not ebook.allow_preview:
             messages.warning(request, "This ebook is not available for in-site preview.")
             return redirect('ebook_list')
+        # This part is correct, it just passes the URL to the template
         stream_url = reverse('ebook_stream', args=[ebook.slug])
         return render(request, 'home/ebook_detail.html', {'ebook': ebook, 'stream_url': stream_url})
 
@@ -710,11 +712,30 @@ class EbookStreamView(View):
             raise Http404("Ebook is not a PDF.")
 
         try:
-            # FIX: Redirect directly to the file's URL
-            return HttpResponseRedirect(ebook.file.url)
+            # --- START FIX ---
+            # 1. Get the public URL from Cloudinary
+            file_url = ebook.file.url
+            
+            # 2. Use urllib to fetch the file from Cloudinary *on the server-side*
+            # This avoids all browser-side CORS issues
+            with urllib.request.urlopen(file_url) as remote_file:
+                pdf_content = remote_file.read()
+            
+            # 3. Serve the fetched content directly to the user's browser
+            # Your PDF.js script will receive this raw PDF data
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            # This header is good practice
+            response['Content-Disposition'] = 'inline; filename="ebook.pdf"'
+            return response
+            # --- END FIX ---
+
+        except urllib.error.URLError as e:
+            print(f"Error fetching ebook {slug} from Cloudinary: {e}")
+            raise Http404("File not found on cloud storage.")
         except Exception as e:
             print(f"Error serving ebook {slug}: {e}")
             return HttpResponse("Error serving file.", status=500)
+
 
 @method_decorator(login_required, name='dispatch')
 class LessonStreamView(View):
@@ -730,8 +751,23 @@ class LessonStreamView(View):
             raise Http404("PDF file not found for this lesson.")
 
         try:
-            # FIX: Redirect directly to the file's URL
-            return HttpResponseRedirect(lesson.pdf_file.url)
+            # --- START FIX ---
+            # 1. Get the public URL from Cloudinary
+            file_url = lesson.pdf_file.url
+
+            # 2. Use urllib to fetch the file from Cloudinary *on the server-side*
+            with urllib.request.urlopen(file_url) as remote_file:
+                pdf_content = remote_file.read()
+            
+            # 3. Serve the fetched content directly to the user's browser
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = 'inline; filename="lesson.pdf"'
+            return response
+            # --- END FIX ---
+
+        except urllib.error.URLError as e:
+            print(f"Error fetching lesson PDF {pk} from Cloudinary: {e}")
+            raise Http404("File not found on cloud storage.")
         except Exception as e:
             print(f"Error serving lesson PDF {pk}: {e}")
             return HttpResponse("Error serving file.", status=500)
@@ -750,30 +786,41 @@ class CertificateListView(ListView):
 class DownloadCertificateView(View):
     def get(self, request, certificate_id):
         certificate = get_object_or_404(Certificate.objects.select_related('user', 'course'), pk=certificate_id)
+        
         if certificate.user != request.user:
             return HttpResponseForbidden("You do not have permission to download this certificate.")
 
-        # Fail fast if file field is empty
-        if not certificate.certificate_file:
-            messages.error(request, "Certificate file is missing or still generating.")
+        # --- START FIX ---
+        #
+        # We must check for both the file field itself AND its public_id.
+        # If the file failed to save to Cloudinary, .certificate_file might exist
+        # but .public_id will be empty, crashing the cloudinary_url() call.
+        #
+        if not certificate.certificate_file or not certificate.certificate_file.public_id:
+            messages.error(request, "Certificate file is missing or still generating. Please try again in a few moments.")
             return redirect('certificate_list')
+        
+        # --- END FIX ---
+
         try:
             # 1. Build the custom filename you want the user to see
             course_title_safe = "".join([c if c.isalnum() else "_" for c in certificate.course.title])
-            filename = f"Certificate_{course_title_safe}_{certificate.unique_id}"
+            # We don't need to add .pdf here; Cloudinary's 'attachment' flag handles it.
+            # Using the first part of the UUID is cleaner than the whole thing.
+            filename = f"Certificate_{course_title_safe}_{str(certificate.unique_id).split('-')[0]}"
 
-            # 2. Use cloudinary.utils to generate a URL.
-            # We tell Cloudinary to serve this as a "raw" file and
-            # to add the 'fl_attachment:YOUR_FILENAME' flag.
-            # This forces the browser's "Save As..." download dialog.
+            # 2. Use cloudinary.utils to generate a secure download URL
             download_url, _ = cloudinary.utils.cloudinary_url(
                 public_id=certificate.certificate_file.public_id,
-                resource_type='raw',
-                flags=f"attachment:{filename}"
+                resource_type='raw', # Correct for PDFs/files
+                flags=f"attachment:{filename}" # Forces download with your custom filename
             )
             
-            # 3. Redirect the user to this special download URL
+            # 3. Redirect the user to this special Cloudinary URL
             return HttpResponseRedirect(download_url)
-        except Exception:
+
+        except Exception as e:
+            # This print statement will show the *actual* error in your console
+            print(f"Error in DownloadCertificateView for cert {certificate_id}: {e}") 
             messages.error(request, "An error occurred while trying to download the certificate.")
             return redirect('certificate_list')
