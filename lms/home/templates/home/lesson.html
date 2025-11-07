@@ -706,36 +706,36 @@
     const pdfUrl = "{% url 'lesson_stream' lesson.pk %}";
     
     // Fetch with credentials and handle response
-    fetch(pdfUrl, { 
-        credentials: 'include',
-        headers: {
-            'Accept': 'application/pdf',
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-        // Check if response is a redirect to Cloudinary
-        const contentType = res.headers.get('content-type');
-        if (res.redirected || (contentType && !contentType.includes('application/pdf'))) {
-            // Follow the redirect URL or use the response URL
-            return fetch(res.url, { 
-                credentials: 'omit' // Don't send credentials to Cloudinary
-            });
-        }
-        return res;
-    })
-    .then(res => res.arrayBuffer())
-    .then(buffer => pdfjsLib.getDocument({data: buffer}).promise)
-    .then(doc => {
-        pdfDoc = doc;
-        pageCountEl.textContent = pdfDoc.numPages;
-        queueRenderPage(1);
-    })
-    .catch(err => {
-        console.error('Failed to load PDF:', err);
-        wrap.innerHTML = `<div class="p-4 text-red-600">Unable to load PDF preview: ${err.message}</div>`;
-    });
+   fetch(pdfUrl, { 
+    credentials: 'include'
+})
+.then(res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    
+    // If it's a redirect (which it will be with our new view), follow it
+    if (res.redirected) {
+        // For redirects, we need to use the final URL
+        return fetch(res.url, { 
+            credentials: 'omit' // Don't send cookies to Cloudinary
+        });
+    }
+    return res;
+})
+.then(res => {
+    if (!res.ok) throw new Error(`Failed to fetch PDF: ${res.status}`);
+    return res.arrayBuffer();
+})
+.then(buffer => pdfjsLib.getDocument({ data: buffer }).promise)
+.then(doc => {
+    pdfDoc = doc;
+    pageCountEl.textContent = pdfDoc.numPages;
+    queueRenderPage(1);
+})
+.catch(err => {
+    console.error('Failed to load PDF:', err);
+    // Show user-friendly error message
+    wrap.innerHTML = `<div class="p-4 text-red-600">Unable to load PDF: ${err.message}. Please try refreshing the page.</div>`;
+});
 
             function queueRenderPage(num) {
                 if (!pdfDoc) return;

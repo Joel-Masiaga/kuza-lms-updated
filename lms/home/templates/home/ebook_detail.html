@@ -300,33 +300,36 @@ document.addEventListener('DOMContentLoaded', function () {
       if (res.redirected || (contentType && !contentType.includes('application/pdf'))) {
           // Fetch the *new* URL (res.url), which is the Cloudinary URL.
           // Use 'omit' so you don't send your site's cookies to Cloudinary.
-          return fetch(res.url, { 
-              credentials: 'omit' 
-          });
-      }
-      // If it wasn't a redirect, just return the response
-      return res;
-  })
-  .then(res => {
-      if (!res.ok) throw new Error(`Failed to fetch PDF from storage: ${res.status} ${res.statusText}`);
-      return res.arrayBuffer();
-  })
-  .then(buf => pdfjsLib.getDocument({ data: buf }).promise)
-  .then(async doc => {
+          fetch(pdfUrl, { 
+    credentials: 'include'
+})
+.then(res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    
+    // If it's a redirect (which it will be with our new view), follow it
+    if (res.redirected) {
+        // For redirects, we need to use the final URL
+        return fetch(res.url, { 
+            credentials: 'omit' // Don't send cookies to Cloudinary
+        });
+    }
+    return res;
+})
+.then(res => {
+    if (!res.ok) throw new Error(`Failed to fetch PDF: ${res.status}`);
+    return res.arrayBuffer();
+})
+.then(buffer => pdfjsLib.getDocument({ data: buffer }).promise)
+.then(doc => {
     pdfDoc = doc;
     pageCountEl.textContent = pdfDoc.numPages;
-    setTimeout(async () => {
-      try {
-        const first = await pdfDoc.getPage(1);
-        scale = computeFitScale(first);
-      } catch { scale = 1.0; }
-      queueRenderPage(1);
-    }, 90);
-  })
-  .catch(err => {
-    console.error('Failed to load PDF', err);
-    showError('Unable to load PDF preview.');
-  });
+    queueRenderPage(1);
+})
+.catch(err => {
+    console.error('Failed to load PDF:', err);
+    // Show user-friendly error message
+    wrap.innerHTML = `<div class="p-4 text-red-600">Unable to load PDF: ${err.message}. Please try refreshing the page.</div>`;
+});
 
   // Controls
   prevBtn.addEventListener('click', () => queueRenderPage(currentPage - 1));

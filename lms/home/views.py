@@ -712,30 +712,15 @@ class EbookStreamView(View):
             raise Http404("Ebook is not a PDF.")
 
         try:
-            # --- START FIX ---
-            # 1. Get the public URL from Cloudinary
+            # --- FIXED APPROACH ---
+            # Get the Cloudinary file URL directly
             file_url = ebook.file.url
             
-            # 2. Use urllib to fetch the file from Cloudinary *on the server-side*
-            # This avoids all browser-side CORS issues
-            with urllib.request.urlopen(file_url) as remote_file:
-                pdf_content = remote_file.read()
+            # For production with Cloudinary, we have two options:
             
-            # 3. Serve the fetched content directly to the user's browser
-            # Your PDF.js script will receive this raw PDF data
-            response = HttpResponse(pdf_content, content_type='application/pdf')
-            # This header is good practice
-            response['Content-Disposition'] = 'inline; filename="ebook.pdf"'
-            return response
-            # --- END FIX ---
-
-        except urllib.error.URLError as e:
-            print(f"Error fetching ebook {slug} from Cloudinary: {e}")
-            raise Http404("File not found on cloud storage.")
-        except Exception as e:
-            print(f"Error serving ebook {slug}: {e}")
-            return HttpResponse("Error serving file.", status=500)
-
+            # Option 1: Redirect to Cloudinary URL (Recommended)
+            # This lets Cloudinary handle the PDF serving directly
+            return HttpResponseRedirect(file_url)
 
 @method_decorator(login_required, name='dispatch')
 class LessonStreamView(View):
@@ -751,23 +736,13 @@ class LessonStreamView(View):
             raise Http404("PDF file not found for this lesson.")
 
         try:
-            # --- START FIX ---
-            # 1. Get the public URL from Cloudinary
+            # --- FIXED APPROACH ---
+            # Get the Cloudinary file URL directly
             file_url = lesson.pdf_file.url
-
-            # 2. Use urllib to fetch the file from Cloudinary *on the server-side*
-            with urllib.request.urlopen(file_url) as remote_file:
-                pdf_content = remote_file.read()
             
-            # 3. Serve the fetched content directly to the user's browser
-            response = HttpResponse(pdf_content, content_type='application/pdf')
-            response['Content-Disposition'] = 'inline; filename="lesson.pdf"'
-            return response
-            # --- END FIX ---
-
-        except urllib.error.URLError as e:
-            print(f"Error fetching lesson PDF {pk} from Cloudinary: {e}")
-            raise Http404("File not found on cloud storage.")
+            # Redirect to Cloudinary URL (Recommended)
+            return HttpResponseRedirect(file_url)
+            
         except Exception as e:
             print(f"Error serving lesson PDF {pk}: {e}")
             return HttpResponse("Error serving file.", status=500)
