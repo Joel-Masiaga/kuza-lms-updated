@@ -706,61 +706,83 @@ class EbookStreamView(View):
         if not ebook.is_pdf:
             raise Http404("Ebook is not a PDF.")
 
-        # --- UPDATED CODE ---
-        # Use Django's storage-aware methods instead of os.path
-        
-        # 1. Check if the file exists using the storage backend
-        if not ebook.file.storage.exists(ebook.file.name):
+        storage = ebook.file.storage
+        # Try storage.exists if available, but don't rely on it for remote backends
+        try:
+            exists = True
+            if hasattr(storage, "exists"):
+                exists = storage.exists(ebook.file.name)
+        except Exception:
+            exists = True
+
+        # If exists check failed and we have a remote URL, redirect to it
+        if not exists:
+            if getattr(ebook.file, "url", None):
+                return HttpResponseRedirect(ebook.file.url)
             raise Http404("File missing on server storage.")
 
+        # Try to open and stream; fall back to redirect to the file URL for remote stores
         try:
-            # 2. Open the file using the storage backend
-            # This works for both local files and Cloudinary files
-            resp = FileResponse(ebook.file.open('rb'), content_type='application/pdf')
-            
-            # --- End of updated code ---
-
-            resp['Content-Disposition'] = 'inline'
-            resp['X-Content-Type-Options'] = 'nosniff'
-            resp['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-            resp['Content-Security-Policy'] = "default-src 'none'; frame-ancestors 'self';"
+            resp = FileResponse(ebook.file.open("rb"), content_type="application/pdf")
+            resp["Content-Disposition"] = "inline"
+            resp["X-Content-Type-Options"] = "nosniff"
+            resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            resp["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'self';"
             return resp
-        except FileNotFoundError: # This can still happen with local storage
+        except FileNotFoundError:
+            # fallback to direct URL if available
+            if getattr(ebook.file, "url", None):
+                return HttpResponseRedirect(ebook.file.url)
             raise Http404("File missing on server storage.")
         except Exception as e:
+            # Some cloud storages will not support open(); try redirect
+            if getattr(ebook.file, "url", None):
+                return HttpResponseRedirect(ebook.file.url)
             print(f"Error serving ebook {slug}: {e}")
             return HttpResponse("Error serving file.", status=500)
-        
+
 @method_decorator(login_required, name='dispatch')
 class LessonStreamView(View):
     def get(self, request, pk):
         lesson = get_object_or_404(Lesson.objects.select_related('module__course'), pk=pk)
         user = request.user
-        
+
         # Security: Check if user is enrolled
         if not Enrollment.objects.filter(user=user, course=lesson.module.course).exists():
             return HttpResponseForbidden("You are not enrolled in this course.")
 
         if not lesson.pdf_file:
             raise Http404("PDF file not found for this lesson.")
-        
-        # Check if file exists in storage
-        if not lesson.pdf_file.storage.exists(lesson.pdf_file.name):
+
+        storage = lesson.pdf_file.storage
+        try:
+            exists = True
+            if hasattr(storage, "exists"):
+                exists = storage.exists(lesson.pdf_file.name)
+        except Exception:
+            exists = True
+
+        if not exists:
+            if getattr(lesson.pdf_file, "url", None):
+                return HttpResponseRedirect(lesson.pdf_file.url)
             raise Http404("File missing on server storage.")
 
         try:
-            # Open from storage (works for local or Cloudinary) and stream it
-            resp = FileResponse(lesson.pdf_file.open('rb'), content_type='application/pdf')
-            resp['Content-Disposition'] = 'inline' # Display in browser
-            resp['X-Content-Type-Options'] = 'nosniff'
-            resp['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            resp = FileResponse(lesson.pdf_file.open("rb"), content_type="application/pdf")
+            resp["Content-Disposition"] = "inline"
+            resp["X-Content-Type-Options"] = "nosniff"
+            resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
             return resp
         except FileNotFoundError:
+            if getattr(lesson.pdf_file, "url", None):
+                return HttpResponseRedirect(lesson.pdf_file.url)
             raise Http404("File missing on server storage.")
         except Exception as e:
-            print(f"Error serving lesson PDF {pk}: {e}") # For your server logs
+            if getattr(lesson.pdf_file, "url", None):
+                return HttpResponseRedirect(lesson.pdf_file.url)
+            print(f"Error serving lesson PDF {pk}: {e}")
             return HttpResponse("Error serving file.", status=500)
-
+        
 @method_decorator(login_required, name='dispatch')
 class CertificateListView(ListView):
     model = Certificate
