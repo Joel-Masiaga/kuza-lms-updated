@@ -167,15 +167,49 @@ STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+if ENVIRONMENT == 'development':
+    # Development Settings
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+        "raw_files": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+    }
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+else:
+    # Production Settings
+    CLOUDINARY_URL = f"cloudinary://{os.getenv('CLOUDINARY_API_KEY')}:{os.getenv('CLOUDINARY_API_SECRET')}@{os.getenv('CLOUDINARY_CLOUD_NAME')}"
+    
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        },
+        "raw_files": {
+            "BACKEND": "cloudinary_storage.storage.RawMediaCloudinaryStorage",
+        },
+    }
+    
+    # Fix the MEDIA_URL format
+    MEDIA_URL = f"https://res.cloudinary.com/{os.getenv('CLOUDINARY_CLOUD_NAME')}/"
 
-
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
-    'RESOURCE_TYPE': 'auto',
-}
+    # Additional Cloudinary settings
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+        'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+        'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+        'SECURE': True,
+        'RESOURCE_TYPE': 'raw',
+        'AUTO_RESOURCE_TYPE': True
+    }
 
 CKEDITOR_UPLOAD_PATH = "uploads/"
 
@@ -364,46 +398,3 @@ if ENVIRONMENT == 'production' or POSTGRES_LOCALLY==False:
         'HOST': os.getenv('AWS_DB_HOST'), 
         'PORT': os.getenv('AWS_DB_PORT', '5432'), 
     }
-
-
-
-
-# --- Storage Configuration ---
-
-ENVIRONMENT = os.getenv('ENVIRONMENT', default='production')
-
-if ENVIRONMENT == 'development':
-    # --- Development Settings ---
-    STORAGES = {
-        "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
-        },
-        "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-        },
-        "raw_files": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    }
-
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = BASE_DIR / 'media'
-
-else:
-    # --- Production Settings ---
-    STORAGES = {
-        "default": {
-            # This remains the default, for images (e.g., ImageField)
-            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-        },
-        "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-        },
-        # --- ADD THIS NEW BLOCK ---
-        "raw_files": {
-            # This backend is for raw files like PDFs, DOCs, etc.
-            "BACKEND": "cloudinary_storage.storage.RawMediaCloudinaryStorage",
-        },
-    }
-    
-    MEDIA_URL = 'https://res.cloudinary.com/%s/' % os.getenv('CLOUDINARY_CLOUD_NAME')
