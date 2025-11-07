@@ -73,7 +73,7 @@ class Lesson(models.Model):
     content = HTMLField(blank=True, null=True)
     read_by_users = models.ManyToManyField(User, related_name='read_lessons', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    pdf_file = models.FileField(upload_to='lesson_pdfs/', blank=True, null=True)
+    pdf_file = models.FileField(upload_to='lesson_pdfs/', storage='raw_files', blank=True, null=True)
 
     def __str__(self):
         return f"{self.module.course.title} - {self.module.title} - {self.title}"
@@ -174,7 +174,7 @@ class Ebook(models.Model):
     slug = models.SlugField(max_length=260, unique=True)
     description = HTMLField(blank=True, null=True)
     cover_image = models.ImageField(upload_to='ebook_covers/', null=True, blank=True)
-    file = models.FileField(upload_to='ebooks/', help_text="Upload PDF file")
+    file = models.FileField(upload_to='ebooks/',storage='raw_files', help_text="Upload PDF file")
     category = models.ForeignKey(EbookCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='ebooks')
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='uploaded_ebooks')
     published = models.BooleanField(default=True)
@@ -211,7 +211,7 @@ class Certificate(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='certificates')
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='certificates')
     issued_at = models.DateTimeField(default=timezone.now)
-    certificate_file = models.FileField(upload_to='certificates/', null=True, blank=True)
+    certificate_file = models.FileField(upload_to='certificates/', storage='raw_files', null=True, blank=True)
     unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True) # Unique ID for verification
 
     class Meta:

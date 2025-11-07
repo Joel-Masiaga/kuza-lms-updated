@@ -737,7 +737,7 @@ class CertificateListView(ListView):
     template_name = 'home/certificates.html'
     context_object_name = 'certificates'
 
-    def get_queryset(self):
+    def get_queryset(self): 
         return Certificate.objects.filter(user=self.request.user).select_related('course').order_by('-issued_at')
 
 

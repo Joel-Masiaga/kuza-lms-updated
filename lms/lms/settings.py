@@ -402,12 +402,16 @@ else:
     # --- Production Settings ---
     STORAGES = {
         "default": {
-            # Use Cloudinary for all user-uploaded media (images, files)
+            # This remains the default, for images (e.g., ImageField)
             "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
         },
         "staticfiles": {
-            # Use WhiteNoise for serving static files (CSS, JS)
             "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        },
+        # --- ADD THIS NEW BLOCK ---
+        "raw_files": {
+            # This backend is for raw files like PDFs, DOCs, etc.
+            "BACKEND": "cloudinary_storage.storage.RawMediaCloudinaryStorage",
         },
     }
     
