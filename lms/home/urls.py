@@ -10,7 +10,8 @@ from .views import (
     CertificateListView, 
     DownloadCertificateView, 
     QuizAttemptListView, 
-    ReviewQuizView
+    ReviewQuizView,
+    LessonStreamView
 )
 
 urlpatterns = [
@@ -19,6 +20,7 @@ urlpatterns = [
     path('course/<int:pk>/', CourseDetailView.as_view(), name='course_detail'),
     path('module/<int:pk>/', ModuleDetailView.as_view(), name='module_detail'),
     path('lesson/<int:pk>/', LessonDetailView.as_view(), name='lesson_detail'),
+    path('lesson/<int:pk>/stream/', LessonStreamView.as_view(), name='lesson_stream'),
 
 
  # Quiz detail view (to display the quiz and questions)

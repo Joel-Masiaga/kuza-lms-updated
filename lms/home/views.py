@@ -730,6 +730,36 @@ class EbookStreamView(View):
         except Exception as e:
             print(f"Error serving ebook {slug}: {e}")
             return HttpResponse("Error serving file.", status=500)
+        
+@method_decorator(login_required, name='dispatch')
+class LessonStreamView(View):
+    def get(self, request, pk):
+        lesson = get_object_or_404(Lesson.objects.select_related('module__course'), pk=pk)
+        user = request.user
+        
+        # Security: Check if user is enrolled
+        if not Enrollment.objects.filter(user=user, course=lesson.module.course).exists():
+            return HttpResponseForbidden("You are not enrolled in this course.")
+
+        if not lesson.pdf_file:
+            raise Http404("PDF file not found for this lesson.")
+        
+        # Check if file exists in storage
+        if not lesson.pdf_file.storage.exists(lesson.pdf_file.name):
+            raise Http404("File missing on server storage.")
+
+        try:
+            # Open from storage (works for local or Cloudinary) and stream it
+            resp = FileResponse(lesson.pdf_file.open('rb'), content_type='application/pdf')
+            resp['Content-Disposition'] = 'inline' # Display in browser
+            resp['X-Content-Type-Options'] = 'nosniff'
+            resp['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            return resp
+        except FileNotFoundError:
+            raise Http404("File missing on server storage.")
+        except Exception as e:
+            print(f"Error serving lesson PDF {pk}: {e}") # For your server logs
+            return HttpResponse("Error serving file.", status=500)
 
 @method_decorator(login_required, name='dispatch')
 class CertificateListView(ListView):

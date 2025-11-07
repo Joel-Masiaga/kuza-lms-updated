@@ -703,7 +703,7 @@
             if (!window.pdfjsLib) { console.warn('pdfjsLib not loaded'); return; }
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-            const pdfUrl = "{{ lesson.pdf_file.url }}";
+            const pdfUrl = "{% url 'lesson_stream' lesson.pk %}";
             const canvas = document.getElementById('pdf-canvas');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
