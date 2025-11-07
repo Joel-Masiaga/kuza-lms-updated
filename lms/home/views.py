@@ -710,26 +710,17 @@ class EbookStreamView(View):
             raise Http404("Ebook is not a PDF.")
 
         try:
-            # Generate signed URL with 1-hour expiration
-            public_id = ebook.file.name
-            params = {
-                'resource_type': 'raw',
-                'type': 'upload',
-                'format': 'pdf',
-                'secure': True,
-                'expires_at': int(time.time()) + 3600  # 1 hour from now
-            }
-            
-            signed_url = cloudinary.utils.cloudinary_url(
-                public_id,
-                **params
-            )[0]
-            
-            return HttpResponseRedirect(signed_url)
-            
+            # Stream the PDF bytes directly from storage to avoid cross-origin issues
+            response = FileResponse(ebook.file.open('rb'), content_type='application/pdf')
+            response['Content-Disposition'] = 'inline; filename="{}"'.format(os.path.basename(ebook.file.name) or 'ebook.pdf')
+            return response
+        except FileNotFoundError:
+            return HttpResponse("File not found.", status=404)
         except Exception as e:
             print(f"Error serving ebook {slug}: {e}")
             return HttpResponse("Error serving file.", status=500)
+
+
 @method_decorator(login_required, name='dispatch')
 class LessonStreamView(View):
     def get(self, request, pk):
@@ -744,23 +735,12 @@ class LessonStreamView(View):
             raise Http404("PDF file not found for this lesson.")
 
         try:
-            # Generate signed URL with 1-hour expiration
-            public_id = lesson.pdf_file.name
-            params = {
-                'resource_type': 'raw',
-                'type': 'upload',
-                'format': 'pdf',
-                'secure': True,
-                'expires_at': int(time.time()) + 3600  # 1 hour from now
-            }
-            
-            signed_url = cloudinary.utils.cloudinary_url(
-                public_id,
-                **params
-            )[0]
-            
-            return HttpResponseRedirect(signed_url)
-            
+            # Stream the PDF bytes directly from storage to avoid cross-origin issues
+            response = FileResponse(lesson.pdf_file.open('rb'), content_type='application/pdf')
+            response['Content-Disposition'] = 'inline; filename="{}"'.format(os.path.basename(lesson.pdf_file.name) or 'lesson.pdf')
+            return response
+        except FileNotFoundError:
+            return HttpResponse("File not found.", status=404)
         except Exception as e:
             print(f"Error serving lesson PDF {pk}: {e}")
             return HttpResponse("Error serving file.", status=500)
@@ -783,18 +763,27 @@ class DownloadCertificateView(View):
         if certificate.user != request.user:
             return HttpResponseForbidden("You do not have permission to download this certificate.")
 
-        if not certificate.certificate_file or not certificate.certificate_file.storage.exists(certificate.certificate_file.name):
-            messages.error(request, "Certificate file not found or is missing. It might be generating or may have failed.")
+        # Fail fast if file field is empty
+        if not certificate.certificate_file:
+            messages.error(request, "Certificate file is missing or still generating.")
             return redirect('certificate_list')
+
+        # Avoid storage.exists() which can raise backend-specific errors; try to open directly
         try:
-            response = FileResponse(certificate.certificate_file.open('rb'), content_type='application/pdf')
+            file_handle = certificate.certificate_file.open('rb')
+        except FileNotFoundError:
+            messages.error(request, "Certificate file could not be found on the server.")
+            return redirect('certificate_list')
+        except Exception:
+            messages.error(request, "Unable to access the certificate file. Please try again later.")
+            return redirect('certificate_list')
+
+        try:
+            response = FileResponse(file_handle, content_type='application/pdf')
             course_title_safe = "".join([c if c.isalnum() else "_" for c in certificate.course.title])
             filename = f"Certificate_{course_title_safe}_{certificate.unique_id}.pdf"
             response['Content-Disposition'] = f'attachment; filename="{filename}"'
             return response
-        except FileNotFoundError:
-            messages.error(request, "Certificate file could not be found on the server.")
-            return redirect('certificate_list')
         except Exception:
             messages.error(request, "An error occurred while trying to download the certificate.")
             return redirect('certificate_list')
