@@ -199,7 +199,7 @@ else:
     }
     
     # Fix the MEDIA_URL format
-    MEDIA_URL = f"https://res.cloudinary.com/{os.getenv('CLOUDINARY_CLOUD_NAME')}/"
+    MEDIA_URL = "/"
 
     # Additional Cloudinary settings
     CLOUDINARY_STORAGE = {
