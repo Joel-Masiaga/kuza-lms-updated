@@ -11,6 +11,9 @@ import os
 from courses.models import Course, Lesson, Module, Enrollment, Note, Ebook, EbookCategory, Certificate
 from quiz.models import Quiz, Question, Answer, QuizAttempt
 from users.models import User, Profile
+from django.conf import settings
+import cloudinary
+import cloudinary.utils
 
 # Gamification constants
 POINTS_PER_LESSON = 10
@@ -706,41 +709,27 @@ class EbookStreamView(View):
         if not ebook.is_pdf:
             raise Http404("Ebook is not a PDF.")
 
-        storage = ebook.file.storage
-        # Try storage.exists if available, but don't rely on it for remote backends
         try:
-            exists = True
-            if hasattr(storage, "exists"):
-                exists = storage.exists(ebook.file.name)
-        except Exception:
-            exists = True
-
-        # If exists check failed and we have a remote URL, redirect to it
-        if not exists:
-            if getattr(ebook.file, "url", None):
-                return HttpResponseRedirect(ebook.file.url)
-            raise Http404("File missing on server storage.")
-
-        # Try to open and stream; fall back to redirect to the file URL for remote stores
-        try:
-            resp = FileResponse(ebook.file.open("rb"), content_type="application/pdf")
-            resp["Content-Disposition"] = "inline"
-            resp["X-Content-Type-Options"] = "nosniff"
-            resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-            resp["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'self';"
-            return resp
-        except FileNotFoundError:
-            # fallback to direct URL if available
-            if getattr(ebook.file, "url", None):
-                return HttpResponseRedirect(ebook.file.url)
-            raise Http404("File missing on server storage.")
+            # Generate signed URL with 1-hour expiration
+            public_id = ebook.file.name
+            params = {
+                'resource_type': 'raw',
+                'type': 'upload',
+                'format': 'pdf',
+                'secure': True,
+                'expires_at': int(time.time()) + 3600  # 1 hour from now
+            }
+            
+            signed_url = cloudinary.utils.cloudinary_url(
+                public_id,
+                **params
+            )[0]
+            
+            return HttpResponseRedirect(signed_url)
+            
         except Exception as e:
-            # Some cloud storages will not support open(); try redirect
-            if getattr(ebook.file, "url", None):
-                return HttpResponseRedirect(ebook.file.url)
             print(f"Error serving ebook {slug}: {e}")
             return HttpResponse("Error serving file.", status=500)
-
 @method_decorator(login_required, name='dispatch')
 class LessonStreamView(View):
     def get(self, request, pk):
@@ -754,34 +743,28 @@ class LessonStreamView(View):
         if not lesson.pdf_file:
             raise Http404("PDF file not found for this lesson.")
 
-        storage = lesson.pdf_file.storage
         try:
-            exists = True
-            if hasattr(storage, "exists"):
-                exists = storage.exists(lesson.pdf_file.name)
-        except Exception:
-            exists = True
-
-        if not exists:
-            if getattr(lesson.pdf_file, "url", None):
-                return HttpResponseRedirect(lesson.pdf_file.url)
-            raise Http404("File missing on server storage.")
-
-        try:
-            resp = FileResponse(lesson.pdf_file.open("rb"), content_type="application/pdf")
-            resp["Content-Disposition"] = "inline"
-            resp["X-Content-Type-Options"] = "nosniff"
-            resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-            return resp
-        except FileNotFoundError:
-            if getattr(lesson.pdf_file, "url", None):
-                return HttpResponseRedirect(lesson.pdf_file.url)
-            raise Http404("File missing on server storage.")
+            # Generate signed URL with 1-hour expiration
+            public_id = lesson.pdf_file.name
+            params = {
+                'resource_type': 'raw',
+                'type': 'upload',
+                'format': 'pdf',
+                'secure': True,
+                'expires_at': int(time.time()) + 3600  # 1 hour from now
+            }
+            
+            signed_url = cloudinary.utils.cloudinary_url(
+                public_id,
+                **params
+            )[0]
+            
+            return HttpResponseRedirect(signed_url)
+            
         except Exception as e:
-            if getattr(lesson.pdf_file, "url", None):
-                return HttpResponseRedirect(lesson.pdf_file.url)
             print(f"Error serving lesson PDF {pk}: {e}")
             return HttpResponse("Error serving file.", status=500)
+
         
 @method_decorator(login_required, name='dispatch')
 class CertificateListView(ListView):

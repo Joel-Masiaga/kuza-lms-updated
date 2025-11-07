@@ -700,52 +700,42 @@
         // PDF viewer init (only if lesson has pdf_file)
         {% if lesson.pdf_file %}
         (function initPdfViewer(){
-            if (!window.pdfjsLib) { console.warn('pdfjsLib not loaded'); return; }
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    if (!window.pdfjsLib) { console.warn('pdfjsLib not loaded'); return; }
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-            const pdfUrl = "{% url 'lesson_stream' lesson.pk %}";
-            const canvas = document.getElementById('pdf-canvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const pageNumEl = document.getElementById('pdf-page-num');
-            const pageCountEl = document.getElementById('pdf-page-count');
-            const pageInput = document.getElementById('pdf-page-input');
-            const prevBtn = document.getElementById('pdf-prev');
-            const nextBtn = document.getElementById('pdf-next');
-            const goBtn = document.getElementById('pdf-go');
-            const zoomIn = document.getElementById('pdf-zoom-in');
-            const zoomOut = document.getElementById('pdf-zoom-out');
-            const wrap = document.getElementById('pdf-canvas-wrap');
-
-            let pdfDoc = null;
-            let currentPage = 1;
-            let scale = 1.0;
-            const SCALE_STEP = 0.15;
-            const MIN_SCALE = 0.5;
-            const MAX_SCALE = 2.5;
-            const DPR = window.devicePixelRatio || 1;
-
-            function renderPage(num) {
-                pdfDoc.getPage(num).then(page => {
-                    const viewport = page.getViewport({ scale: scale });
-                    canvas.width = Math.floor(viewport.width * DPR);
-                    canvas.height = Math.floor(viewport.height * DPR);
-                    canvas.style.width = `${Math.floor(viewport.width)}px`;
-                    canvas.style.height = `${Math.floor(viewport.height)}px`;
-                    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    const renderCtx = { canvasContext: ctx, viewport: viewport, intent: 'display' };
-                    page.render(renderCtx).promise.then(() => {
-                        pageNumEl.textContent = currentPage;
-                        pageInput.value = currentPage;
-                        prevBtn.disabled = currentPage <= 1;
-                        nextBtn.disabled = currentPage >= pdfDoc.numPages;
-                    });
-                }).catch(err => {
-                    console.error('Error rendering PDF page', err);
-                    wrap.innerHTML = '<div class="p-4 text-red-600">Unable to render PDF page.</div>';
-                });
-            }
+    const pdfUrl = "{% url 'lesson_stream' lesson.pk %}";
+    
+    // Fetch with credentials and handle response
+    fetch(pdfUrl, { 
+        credentials: 'include',
+        headers: {
+            'Accept': 'application/pdf',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+        // Check if response is a redirect to Cloudinary
+        const contentType = res.headers.get('content-type');
+        if (res.redirected || (contentType && !contentType.includes('application/pdf'))) {
+            // Follow the redirect URL or use the response URL
+            return fetch(res.url, { 
+                credentials: 'omit' // Don't send credentials to Cloudinary
+            });
+        }
+        return res;
+    })
+    .then(res => res.arrayBuffer())
+    .then(buffer => pdfjsLib.getDocument({data: buffer}).promise)
+    .then(doc => {
+        pdfDoc = doc;
+        pageCountEl.textContent = pdfDoc.numPages;
+        queueRenderPage(1);
+    })
+    .catch(err => {
+        console.error('Failed to load PDF:', err);
+        wrap.innerHTML = `<div class="p-4 text-red-600">Unable to load PDF preview: ${err.message}</div>`;
+    });
 
             function queueRenderPage(num) {
                 if (!pdfDoc) return;

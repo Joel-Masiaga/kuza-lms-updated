@@ -166,19 +166,13 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   {% if ebook.allow_preview %}
-  if (!window.pdfjsLib) { console.warn('pdfjsLib not loaded'); return; }
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-
-  const pdfUrl = "{{ stream_url }}";
+  // Initialize DOM elements
+  const viewer = document.getElementById('pdf-viewer');
   const canvas = document.getElementById('pdf-canvas');
   const wrap = document.getElementById('pdf-canvas-wrap');
-  const viewer = document.getElementById('pdf-viewer');
   const errorEl = document.getElementById('pdf-error');
-  if (!canvas || !wrap || !viewer) return;
-  const ctx = canvas.getContext('2d');
-
-  const pageNumEl = document.getElementById('pdf-page-num');
   const pageCountEl = document.getElementById('pdf-page-count');
+  const pageNumEl = document.getElementById('pdf-page-num');
   const pageInput = document.getElementById('pdf-page-input');
   const prevBtn = document.getElementById('pdf-prev');
   const nextBtn = document.getElementById('pdf-next');
@@ -188,131 +182,130 @@ document.addEventListener('DOMContentLoaded', function () {
   const fitBtn = document.getElementById('pdf-fit');
   const fsBtn = document.getElementById('pdf-fullscreen');
 
+  // PDF.js initialization
+  if (!window.pdfjsLib) { console.warn('pdfjsLib not loaded'); return; }
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+  // State variables
   let pdfDoc = null;
   let currentPage = 1;
   let scale = 1.0;
   let isFitMode = true;
-  let renderTask = null; // track in-flight render
+  const MIN_SCALE = 0.25;
+  const MAX_SCALE = 3.0;
+  const SCALE_STEP = 0.25;
 
-  const SCALE_STEP = 0.15;
-  const MIN_SCALE = 0.5;
-  const MAX_SCALE = 6.0;
-  const DPR = Math.max(1, window.devicePixelRatio || 1);
-
-  function hideError() { if (errorEl) errorEl.style.display = 'none'; }
-  function showError(msg) { if (errorEl) { errorEl.textContent = msg || 'Unable to render PDF page.'; errorEl.style.display = 'flex'; } }
+  // Utility functions
+  function showError(message) {
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.style.display = 'flex';
+    }
+  }
 
   function computeFitScale(page) {
-    const vp = page.getViewport({ scale: 1 });
-    const rect = wrap.getBoundingClientRect();
-    const availW = Math.max(200, rect.width - 40);
-    const availH = Math.max(200, rect.height - 40);
-    const scaleX = availW / vp.width;
-    const scaleY = availH / vp.height;
-    const fit = Math.min(scaleX, scaleY);
-    return Math.max(MIN_SCALE, Math.min(fit, MAX_SCALE));
+    if (!page || !wrap) return 1.0;
+    const viewport = page.getViewport({ scale: 1 });
+    const containerWidth = wrap.clientWidth - 40;
+    const containerHeight = wrap.clientHeight - 40;
+    return Math.min(
+      containerWidth / viewport.width,
+      containerHeight / viewport.height,
+      2.0
+    );
   }
 
   async function renderPage(num) {
     if (!pdfDoc) return;
     try {
-      // cancel previous render if any (avoids fullscreen race and cancellation error)
-      if (renderTask && typeof renderTask.cancel === 'function') {
-        renderTask.cancel();
-        renderTask = null;
-      }
-
       const page = await pdfDoc.getPage(num);
-      if (isFitMode) scale = computeFitScale(page);
-
       const viewport = page.getViewport({ scale });
-      canvas.width = Math.round(viewport.width * DPR);
-      canvas.height = Math.round(viewport.height * DPR);
-      canvas.style.width = Math.round(viewport.width) + 'px';
-      canvas.style.height = Math.round(viewport.height) + 'px';
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      
+      await page.render({
+        canvasContext: canvas.getContext('2d'),
+        viewport: viewport
+      }).promise;
 
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      hideError();
-      renderTask = page.render({ canvasContext: ctx, viewport, intent: 'display' });
-      await renderTask.promise;
-      renderTask = null;
-
-      pageNumEl.textContent = currentPage;
-      pageInput.value = currentPage;
-      pageCountEl.textContent = pdfDoc.numPages;
-      prevBtn.disabled = currentPage <= 1;
-      nextBtn.disabled = currentPage >= pdfDoc.numPages;
-
-      centerCanvasInWrap();
-    } catch (e) {
-      // Ignore expected cancellation during resize/fullscreen
-      if (e && (e.name === 'RenderingCancelledException' || e.message?.includes('Rendering cancelled'))) {
-        return;
-      }
-      console.error('Render error', e);
-      showError('Unable to render PDF page.');
+      pageNumEl.textContent = num;
+      pageInput.value = num;
+      prevBtn.disabled = num <= 1;
+      nextBtn.disabled = num >= pdfDoc.numPages;
+      errorEl.style.display = 'none';
+    } catch (err) {
+      console.error('Error rendering page:', err);
+      showError('Failed to render page');
     }
   }
 
   function queueRenderPage(num) {
     if (!pdfDoc) return;
-    if (num < 1) num = 1;
-    if (num > pdfDoc.numPages) num = pdfDoc.numPages;
-    currentPage = num;
+    currentPage = Math.max(1, Math.min(pdfDoc.numPages, num));
     renderPage(currentPage);
   }
 
-  function centerCanvasInWrap() {
-    setTimeout(() => {
+  // Load PDF with proper auth handling
+  const pdfUrl = "{% url 'ebook_stream' ebook.slug %}";
+  fetch(pdfUrl, { 
+    credentials: 'include',
+    headers: {
+      'Accept': 'application/pdf',
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    const contentType = res.headers.get('content-type');
+    if (res.redirected || (contentType && !contentType.includes('application/pdf'))) {
+      return fetch(res.url, { credentials: 'omit' });
+    }
+    return res;
+  })
+  .then(res => res.arrayBuffer())
+  .then(buffer => pdfjsLib.getDocument({data: buffer}).promise)
+  .then(doc => {
+    pdfDoc = doc;
+    pageCountEl.textContent = pdfDoc.numPages;
+    setTimeout(async () => {
       try {
-        const cw = canvas.offsetWidth;
-        const ch = canvas.offsetHeight;
-        const left = Math.max(0, (canvas.offsetLeft + (cw / 2)) - (wrap.clientWidth / 2));
-        const top = Math.max(0, (canvas.offsetTop + (ch / 2)) - (wrap.clientHeight / 2));
-        if ('scrollTo' in wrap) wrap.scrollTo({ left, top, behavior: 'smooth' });
-        else { wrap.scrollLeft = left; wrap.scrollTop = top; }
-      } catch (_) {}
-    }, 40);
-  }
+        const first = await pdfDoc.getPage(1);
+        scale = computeFitScale(first);
+      } catch { scale = 1.0; }
+      queueRenderPage(1);
+    }, 90);
+  })
+  .catch(err => {
+    console.error('Failed to load PDF:', err);
+    showError(`Unable to load PDF preview: ${err.message}`);
+  });
 
-  async function recomputeAndRender() {
-    if (!pdfDoc) return;
-    isFitMode = true;
-    const page = await pdfDoc.getPage(currentPage);
-    scale = computeFitScale(page);
-    queueRenderPage(currentPage);
-  }
-
-  // Load PDF
-  fetch(pdfUrl, { credentials: 'same-origin' })
-    .then(res => { if (!res.ok) throw new Error('Could not fetch PDF'); return res.arrayBuffer(); })
-    .then(buf => pdfjsLib.getDocument({ data: buf }).promise)
-    .then(async doc => {
-      pdfDoc = doc;
-      pageCountEl.textContent = pdfDoc.numPages;
-      setTimeout(async () => {
-        try {
-          const first = await pdfDoc.getPage(1);
-          scale = computeFitScale(first);
-        } catch { scale = 1.0; }
-        queueRenderPage(1);
-      }, 90);
-    })
-    .catch(err => {
-      console.error('Failed to load PDF', err);
-      showError('Unable to load PDF preview.');
-    });
-
-  // Controls
+  // Event Listeners
   prevBtn.addEventListener('click', () => queueRenderPage(currentPage - 1));
   nextBtn.addEventListener('click', () => queueRenderPage(currentPage + 1));
-  goBtn.addEventListener('click', () => { const v = parseInt(pageInput.value,10); if (!isNaN(v)) queueRenderPage(v); });
-  pageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); goBtn.click(); } });
+  goBtn.addEventListener('click', () => { 
+    const v = parseInt(pageInput.value, 10); 
+    if (!isNaN(v)) queueRenderPage(v); 
+  });
+  pageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      goBtn.click();
+    }
+  });
 
-  zoomIn && zoomIn.addEventListener('click', () => { isFitMode = false; scale = Math.min(MAX_SCALE, +(scale + SCALE_STEP).toFixed(3)); queueRenderPage(currentPage); });
-  zoomOut && zoomOut.addEventListener('click', () => { isFitMode = false; scale = Math.max(MIN_SCALE, +(scale - SCALE_STEP).toFixed(3)); queueRenderPage(currentPage); });
+  // Zoom controls
+  zoomIn && zoomIn.addEventListener('click', () => {
+    isFitMode = false;
+    scale = Math.min(MAX_SCALE, +(scale + SCALE_STEP).toFixed(3));
+    queueRenderPage(currentPage);
+  });
+  
+  zoomOut && zoomOut.addEventListener('click', () => {
+    isFitMode = false;
+    scale = Math.max(MIN_SCALE, +(scale - SCALE_STEP).toFixed(3));
+    queueRenderPage(currentPage);
+  });
 
   fitBtn && fitBtn.addEventListener('click', async () => {
     isFitMode = true;
@@ -322,17 +315,24 @@ document.addEventListener('DOMContentLoaded', function () {
     queueRenderPage(currentPage);
   });
 
-  // Fullscreen helpers
+  // Fullscreen handlers
+  async function recomputeAndRender() {
+    if (!pdfDoc || !isFitMode) return;
+    const page = await pdfDoc.getPage(currentPage);
+    scale = computeFitScale(page);
+    queueRenderPage(currentPage);
+  }
+
   async function enterFullscreen() {
     if (viewer.requestFullscreen) return viewer.requestFullscreen();
     if (viewer.webkitRequestFullscreen) return viewer.webkitRequestFullscreen();
     if (viewer.mozRequestFullScreen) return viewer.mozRequestFullScreen();
-    // fallback class if native FS unavailable
     viewer.classList.add('pdf-viewer-fullscreen');
     document.documentElement.style.overflow = 'hidden';
     await Promise.resolve();
     await recomputeAndRender();
   }
+
   async function exitFullscreen() {
     if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) {
       if (document.exitFullscreen) return document.exitFullscreen();
@@ -344,12 +344,15 @@ document.addEventListener('DOMContentLoaded', function () {
     await Promise.resolve();
     await recomputeAndRender();
   }
+
   function onFsChange() {
     const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
     if (isFS) viewer.classList.add('pdf-viewer-fullscreen');
     else viewer.classList.remove('pdf-viewer-fullscreen');
-    setTimeout(() => { recomputeAndRender(); centerCanvasInWrap(); }, 120);
+    setTimeout(() => { recomputeAndRender(); }, 120);
   }
+
+  // Fullscreen event listeners
   document.addEventListener('fullscreenchange', onFsChange);
   document.addEventListener('webkitfullscreenchange', onFsChange);
   document.addEventListener('mozfullscreenchange', onFsChange);
@@ -357,12 +360,14 @@ document.addEventListener('DOMContentLoaded', function () {
   fsBtn && fsBtn.addEventListener('click', async () => {
     try {
       const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
-      if (!isFS) await enterFullscreen(); else await exitFullscreen();
-      // rely on events/above recompute; no extra immediate render to avoid double-cancel
-    } catch (err) { console.warn('Fullscreen toggle failed', err); }
+      if (!isFS) await enterFullscreen();
+      else await exitFullscreen();
+    } catch (err) {
+      console.warn('Fullscreen toggle failed', err);
+    }
   });
 
-  // Recompute on window resize
+  // Window resize handling
   let resizeTimer = null;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
@@ -376,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 150);
   });
 
-  // UX protections & keyboard
+  // UX protections & keyboard shortcuts
   viewer.addEventListener('contextmenu', (e) => e.preventDefault());
   document.addEventListener('keydown', (e) => {
     if (/input|textarea/i.test(document.activeElement.tagName)) return;
