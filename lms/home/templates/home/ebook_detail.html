@@ -286,24 +286,47 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Load PDF
-  fetch(pdfUrl, { credentials: 'same-origin' })
-    .then(res => { if (!res.ok) throw new Error('Could not fetch PDF'); return res.arrayBuffer(); })
-    .then(buf => pdfjsLib.getDocument({ data: buf }).promise)
-    .then(async doc => {
-      pdfDoc = doc;
-      pageCountEl.textContent = pdfDoc.numPages;
-      setTimeout(async () => {
-        try {
-          const first = await pdfDoc.getPage(1);
-          scale = computeFitScale(first);
-        } catch { scale = 1.0; }
-        queueRenderPage(1);
-      }, 90);
-    })
-    .catch(err => {
-      console.error('Failed to load PDF', err);
-      showError('Unable to load PDF preview.');
-    });
+  fetch(pdfUrl, { 
+      credentials: 'include', // Use 'include' to send session cookies to your stream view
+      headers: {
+          'Accept': 'application/pdf',
+          'X-Requested-With': 'XMLHttpRequest'
+      }
+  })
+  .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+      // Check if your view redirected (res.redirected) or if Cloudinary did
+      const contentType = res.headers.get('content-type');
+      if (res.redirected || (contentType && !contentType.includes('application/pdf'))) {
+          // Fetch the *new* URL (res.url), which is the Cloudinary URL.
+          // Use 'omit' so you don't send your site's cookies to Cloudinary.
+          return fetch(res.url, { 
+              credentials: 'omit' 
+          });
+      }
+      // If it wasn't a redirect, just return the response
+      return res;
+  })
+  .then(res => {
+      if (!res.ok) throw new Error(`Failed to fetch PDF from storage: ${res.status} ${res.statusText}`);
+      return res.arrayBuffer();
+  })
+  .then(buf => pdfjsLib.getDocument({ data: buf }).promise)
+  .then(async doc => {
+    pdfDoc = doc;
+    pageCountEl.textContent = pdfDoc.numPages;
+    setTimeout(async () => {
+      try {
+        const first = await pdfDoc.getPage(1);
+        scale = computeFitScale(first);
+      } catch { scale = 1.0; }
+      queueRenderPage(1);
+    }, 90);
+  })
+  .catch(err => {
+    console.error('Failed to load PDF', err);
+    showError('Unable to load PDF preview.');
+  });
 
   // Controls
   prevBtn.addEventListener('click', () => queueRenderPage(currentPage - 1));
