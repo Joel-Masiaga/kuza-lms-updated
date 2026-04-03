@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import dj_database_url
 from dotenv import load_dotenv
 
 
@@ -378,10 +379,10 @@ DATABASES = {
     }
 }
 
-# #Database connection
-# POSTGRES_LOCALLY = True
-# if ENVIRONMENT == 'production' or POSTGRES_LOCALLY == True:
-#     DATABASES['default'] = dj_database_url.parse(os.getenv('DATABASE_URL'), conn_max_age=600)
+#Database connection
+POSTGRES_LOCALLY = True
+if ENVIRONMENT == 'production' or POSTGRES_LOCALLY == True:
+    DATABASES['default'] = dj_database_url.parse(os.getenv('DATABASE_URL'), conn_max_age=600)
 
 
 # AWS RDS - POSTGRES CONNECTION
