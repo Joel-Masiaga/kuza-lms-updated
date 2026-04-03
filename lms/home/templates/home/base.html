@@ -45,8 +45,8 @@
 
         /* --- 2. CUSTOM BRAND CLASSES --- */
         .bg-primary { background-color: var(--color-primary); }
-        .text-primary { color: var(--color-primary); }
-        .border-primary { border-color: var(--color-primary); }
+        .text-primary dark:text-primary-light { color: var(--color-primary); }
+        .border-primary dark:border-primary-light { border-color: var(--color-primary); }
         .bg-primary-light { background-color: var(--color-primary-light); }
         .text-primary-darker { color: var(--color-primary-darker); }
         .hover\:bg-primary-dark:hover { background-color: var(--color-primary-dark); }
@@ -157,7 +157,7 @@
                     {% if 'success' in tags %} bg-green-600 text-white border-green-500
                     {% elif 'error' in tags %} bg-red-600 text-white border-red-500
                     {% elif 'warning' in tags %} bg-yellow-500 text-white border-yellow-400
-                    {% else %} bg-primary text-white border-primary
+                    {% else %} bg-primary text-white border-primary dark:border-primary-light
                     {% endif %}">
                     <div class="shrink-0">
                         {% if 'success' in tags %}
@@ -192,11 +192,32 @@
                  <span class="hidden md:inline text-xl font-bold text-green-900 dark:text-white">Kuza Ndoto Academy</span>
             </div>
         </div>
-        <div class="hidden md:flex items-center">
-            <input type="text" placeholder="Search courses, docs..." class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary w-64 lg:w-96">
-            <button class="ml-2 p-2 rounded-lg bg-primary hover:bg-primary-dark text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800"> <i class="fas fa-search"></i> </button>
-        </div>
+        <form id="global-search-form" action="{% url 'search' %}" method="get" class="hidden md:flex items-center" role="search">
+            <div class="relative">
+                <input id="global-search-input" type="search" name="q" value="{{ request.GET.q|default:'' }}"
+                       placeholder="Search courses, ebooks, lessons..."
+                       autocomplete="off"
+                       class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-primary w-64 lg:w-96">
+                <button type="submit" aria-label="Search"
+                        class="absolute right-0 inset-y-0 px-3 rounded-r-lg bg-primary hover:bg-primary-dark text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+
+        <!-- ── Mobile search toggle icon (visible only on mobile) ─────────── -->
+        <button id="mobileSearchToggle"
+                aria-label="Toggle search"
+                aria-expanded="false"
+                aria-controls="mobile-search-panel"
+                class="md:hidden text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white
+                       focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full
+                       w-9 h-9 flex items-center justify-center transition-colors">
+            <i class="fas fa-search text-base" id="mobileSearchIcon"></i>
+        </button>
+
         <div class="flex items-center space-x-2 sm:space-x-4">
+
             <span class="flex items-center text-yellow-500 font-semibold text-xs sm:text-sm gap-1 sm:gap-2 whitespace-nowrap">
                 <i class="fas fa-medal text-base sm:text-lg"></i>
                 <span>
@@ -214,13 +235,13 @@
                 {% if user.is_authenticated %}
                     {% with first_name=user.profile.first_name|default:user.first_name|default:'' last_name=user.profile.last_name|default:user.last_name|default:'' %}
                     {% if user.profile.image and user.profile.image.url != '/media/default.jpg' %}
-                        <img src="{{ user.profile.image.url }}"  alt="User Avatar" class="h-8 w-8 rounded-full mr-2 border-2 border-transparent hover:border-primary transition-colors cursor-pointer object-cover">
+                        <img src="{{ user.profile.image.url }}"  alt="User Avatar" class="h-8 w-8 rounded-full mr-2 border-2 border-transparent hover:border-primary dark:border-primary-light transition-colors cursor-pointer object-cover">
                     {% else %}
                         {% with initial_first=first_name.0|default:'' initial_last=last_name.0|default:'' %}
                             {% if initial_first or initial_last %}
-                                <img src="https://placehold.co/32x32/EFEFEF/777?text={{ initial_first|upper }}{{ initial_last|upper }}" alt="User Avatar" class="h-8 w-8 rounded-full mr-2 border-2 border-transparent hover:border-primary transition-colors cursor-pointer">
+                                <img src="https://placehold.co/32x32/EFEFEF/777?text={{ initial_first|upper }}{{ initial_last|upper }}" alt="User Avatar" class="h-8 w-8 rounded-full mr-2 border-2 border-transparent hover:border-primary dark:border-primary-light transition-colors cursor-pointer">
                             {% else %}
-                                <img src="https://placehold.co/32x32/EFEFEF/777?text={{ user.email.0|upper|default:'U' }}" alt="User Avatar" class="h-8 w-8 rounded-full mr-2 border-2 border-transparent hover:border-primary transition-colors cursor-pointer">
+                                <img src="https://placehold.co/32x32/EFEFEF/777?text={{ user.email.0|upper|default:'U' }}" alt="User Avatar" class="h-8 w-8 rounded-full mr-2 border-2 border-transparent hover:border-primary dark:border-primary-light transition-colors cursor-pointer">
                             {% endif %}
                         {% endwith %}
                     {% endif %}
@@ -233,7 +254,7 @@
                     {% endwith %}
 
                 {% else %}
-                     <img src="https://placehold.co/32x32/EFEFEF/777?text=G" alt="Guest Avatar" class="h-8 w-8 rounded-full mr-2 border-2 border-transparent hover:border-primary transition-colors cursor-pointer">
+                     <img src="https://placehold.co/32x32/EFEFEF/777?text=G" alt="Guest Avatar" class="h-8 w-8 rounded-full mr-2 border-2 border-transparent hover:border-primary dark:border-primary-light transition-colors cursor-pointer">
                     <span class="hidden sm:inline text-gray-900 dark:text-white font-medium cursor-pointer">Guest</span>
                 {% endif %}
 
@@ -247,6 +268,43 @@
         </div>
     </header>
 
+    <!-- ── Mobile slide-down search panel ──────────────────────────────────── -->
+    <div id="mobile-search-panel"
+         class="md:hidden fixed left-0 right-0 z-20 bg-white dark:bg-gray-800 shadow-lg
+                border-b border-gray-200 dark:border-gray-700
+                transform -translate-y-full opacity-0 pointer-events-none
+                transition-all duration-300 ease-in-out"
+         style="top:64px;">
+        <div class="px-4 py-3">
+            <form id="mobile-search-form" action="{% url 'search' %}" method="get" role="search" class="flex items-center gap-2">
+                <div class="relative flex-1">
+                    <input id="mobile-search-input"
+                           type="search" name="q"
+                           value="{{ request.GET.q|default:'' }}"
+                           placeholder="Search courses, ebooks, lessons..."
+                           autocomplete="off"
+                           autofocus
+                           class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
+                                  rounded-xl py-2.5 pl-4 pr-10
+                                  focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                    <button type="submit" aria-label="Search"
+                            class="absolute right-0 inset-y-0 px-3 rounded-r-xl
+                                   bg-primary hover:bg-primary-dark text-white
+                                   focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                        <i class="fas fa-search text-sm"></i>
+                    </button>
+                </div>
+                <button type="button" id="mobileSearchClose"
+                        aria-label="Close search"
+                        class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200
+                               w-9 h-9 flex items-center justify-center flex-shrink-0
+                               rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <nav id="l1-mobile-sidebar" class="fixed top-0 left-0 h-full w-72 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-lg z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col md:hidden">
         <div class="flex items-center justify-between h-16 p-4 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center space-x-2">
@@ -257,7 +315,27 @@
             </button>
         </div>
 
+        <!-- Search inside mobile sidebar -->
+        <form action="{% url 'search' %}" method="get" role="search" class="px-2 pt-1 pb-2">
+            <div class="relative">
+                <input type="search" name="q"
+                       value="{{ request.GET.q|default:'' }}"
+                       placeholder="Search..."
+                       autocomplete="off"
+                       class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
+                              rounded-lg py-2 pl-3 pr-9 text-sm
+                              focus:outline-none focus:ring-2 focus:ring-primary">
+                <button type="submit" aria-label="Search"
+                        class="absolute right-0 inset-y-0 px-2.5 rounded-r-lg
+                               bg-primary hover:bg-primary-dark text-white
+                               focus:outline-none">
+                    <i class="fas fa-search text-xs"></i>
+                </button>
+            </div>
+        </form>
+
         <div class="flex-1 flex flex-col py-4 space-y-2 px-2 overflow-y-auto">
+
             <a href="{% url 'home' %}" data-page="home" class="{% if request.resolver_match.url_name == 'home' %}nav-active{% else %}text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700{% endif %} flex items-center p-3 rounded-lg transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 group">
                 <i class="fas fa-home text-xl w-8 text-center"></i> <span class="ml-4 font-semibold">Dashboard</span>
             </a>
@@ -337,7 +415,7 @@
              {% block content %}
              <main class="flex-1 p-4 sm:p-6 overflow-y-auto">
                  <div class="flex-1 flex items-center justify-center h-full">
-                     <i class="fas fa-spinner fa-spin text-primary text-4xl"></i>
+                     <i class="fas fa-spinner fa-spin text-primary dark:text-primary-light text-4xl"></i>
                  </div>
              </main>
              {% endblock %}
@@ -618,17 +696,26 @@
     </script>
 
     <script>
-    // Mobile Menu Handlers
+    // Mobile Menu & Search Handlers
     (function() {
         const mobileL1Toggle = document.getElementById('mobileL1SidebarToggle');
         const mobileL1Sidebar = document.getElementById('l1-mobile-sidebar');
         const closeL1Btn = document.getElementById('closeL1Sidebar');
         const mobileOverlay = document.getElementById('mobile-overlay');
 
+        // Mobile Search Elements
+        const mobileSearchToggle = document.getElementById('mobileSearchToggle');
+        const mobileSearchPanel = document.getElementById('mobile-search-panel');
+        const mobileSearchClose = document.getElementById('mobileSearchClose');
+        const mobileSearchIcon = document.getElementById('mobileSearchIcon');
+        const mobileSearchInput = document.getElementById('mobile-search-input');
+
+        /* -- Sidebar Menu -- */
         function openMobileMenu() {
             mobileL1Sidebar.classList.remove('-translate-x-full');
             mobileOverlay.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
+            closeMobileSearch(); // Ensure search is closed when menu opens
         }
 
         function closeMobileMenu() {
@@ -637,21 +724,496 @@
             document.body.style.overflow = '';
         }
 
-        // Toggle mobile menu
-        mobileL1Toggle.addEventListener('click', openMobileMenu);
-        closeL1Btn.addEventListener('click', closeMobileMenu);
-        mobileOverlay.addEventListener('click', closeMobileMenu);
+        if (mobileL1Toggle) mobileL1Toggle.addEventListener('click', openMobileMenu);
+        if (closeL1Btn) closeL1Btn.addEventListener('click', closeMobileMenu);
+        if (mobileOverlay) mobileOverlay.addEventListener('click', closeMobileMenu);
 
-        // Close menu on wider screens
+        /* -- Mobile Search Panel -- */
+        let searchOpen = false;
+
+        function openMobileSearch() {
+            searchOpen = true;
+            mobileSearchPanel.classList.remove('-translate-y-full', 'opacity-0', 'pointer-events-none');
+            mobileSearchPanel.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
+            mobileSearchIcon.classList.remove('fa-search');
+            mobileSearchIcon.classList.add('fa-times');
+            mobileSearchToggle.setAttribute('aria-expanded', 'true');
+            // Slight delay so input focus occurs after animation
+            setTimeout(() => { if (mobileSearchInput) mobileSearchInput.focus(); }, 150);
+        }
+
+        function closeMobileSearch() {
+            searchOpen = false;
+            mobileSearchPanel.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
+            // Slight delay before making input unclickable so the slide-up animation isn't abrupt on touches
+            mobileSearchPanel.classList.add('-translate-y-full', 'opacity-0', 'pointer-events-none');
+            mobileSearchIcon.classList.remove('fa-times');
+            mobileSearchIcon.classList.add('fa-search');
+            mobileSearchToggle.setAttribute('aria-expanded', 'false');
+            if (mobileSearchInput) mobileSearchInput.blur();
+        }
+
+        if (mobileSearchToggle) {
+            mobileSearchToggle.addEventListener('click', () => {
+                if (searchOpen) closeMobileSearch(); else openMobileSearch();
+            });
+        }
+        
+        if (mobileSearchClose) {
+            mobileSearchClose.addEventListener('click', closeMobileSearch);
+        }
+
+        // Close search if clicking anywhere outside the panel and toggle button
+        document.addEventListener('click', (e) => {
+            if (searchOpen && mobileSearchPanel && mobileSearchToggle) {
+                if (!mobileSearchPanel.contains(e.target) && !mobileSearchToggle.contains(e.target)) {
+                    closeMobileSearch();
+                }
+            }
+        });
+
+        // Close menus/search on wider screens or scroll
         window.addEventListener('resize', () => {
             if (window.innerWidth >= 768) { // md breakpoint
                 closeMobileMenu();
+                closeMobileSearch();
             }
         });
+        
+        // Auto-close search on downward scroll (optional refinement)
+        let lastScrollY = window.scrollY;
+        window.addEventListener('scroll', () => {
+            if (searchOpen && window.scrollY > lastScrollY + 20) closeMobileSearch();
+            lastScrollY = window.scrollY;
+        }, { passive: true });
+
     })();
 </script>
 
 
     {% block extra_js %}{% endblock %}
+
+    {% if user.is_authenticated %}{% if not user.profile.has_seen_tour %}
+    <!-- ───── Onboarding Tour (Driver.js) ───── -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>
+    <style>
+      /* Polished, responsive Driver.js overrides */
+      .driver-popover {
+        max-width: min(360px, calc(100vw - 20px)) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 24px 64px rgba(0,0,0,0.22) !important;
+        padding: 20px 22px 16px !important;
+        font-family: 'Inter', sans-serif !important;
+      }
+      .driver-popover-title {
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        margin-bottom: 6px !important;
+        color: #0f172a !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+      }
+      .driver-popover-description {
+        font-size: 0.875rem !important;
+        line-height: 1.6 !important;
+        color: #374151 !important;
+      }
+      .driver-popover-footer {
+        margin-top: 16px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+      }
+      /* ── Progress counter ── */
+      .driver-popover-progress-text {
+        font-size: 0.78rem !important;
+        font-weight: 700 !important;
+        color: #00878d !important;
+        background: #e0f2f1 !important;
+        padding: 3px 10px !important;
+        border-radius: 99px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+      }
+      /* ── Buttons ── */
+      .driver-popover-navigation-btns {
+        display: flex !important;
+        gap: 8px !important;
+        flex-wrap: nowrap !important;
+      }
+      .driver-popover-prev-btn {
+        padding: 6px 14px !important;
+        border-radius: 8px !important;
+        font-size: 0.8rem !important;
+        border: 1px solid #d1d5db !important;
+        background: transparent !important;
+        color: #374151 !important;
+        cursor: pointer !important;
+      }
+      .driver-popover-next-btn {
+        padding: 6px 16px !important;
+        border-radius: 8px !important;
+        font-size: 0.8rem !important;
+        background: #00878d !important;
+        color: #fff !important;
+        border: none !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+      }
+      .driver-popover-next-btn:hover { background: #006f74 !important; }
+      .driver-popover-close-btn {
+        color: #9ca3af !important;
+        font-size: 1.1rem !important;
+        padding: 0 !important;
+        background: none !important;
+        border: none !important;
+        cursor: pointer !important;
+        position: absolute !important;
+        top: 14px !important;
+        right: 16px !important;
+      }
+      .driver-popover-close-btn:hover { color: #374151 !important; }
+      /* Dark-mode adaptations */
+      .dark .driver-popover { background: #1f2937 !important; border: 1px solid #374151 !important; }
+      .dark .driver-popover-title { color: #f1f5f9 !important; }
+      .dark .driver-popover-description { color: #d1d5db !important; }
+      .dark .driver-popover-prev-btn { border-color: #4b5563 !important; color: #d1d5db !important; }
+      .dark .driver-popover-close-btn { color: #6b7280 !important; }
+      .dark .driver-popover-progress-text { background: #064e3b !important; color: #34d399 !important; }
+      @media (max-width: 640px) {
+        .driver-popover { padding: 18px 16px 14px !important; }
+        .driver-popover-title { font-size: 0.95rem !important; }
+      }
+      /* Celebration modal animations */
+      @keyframes kza-fadeIn  { from { opacity:0 } to { opacity:1 } }
+      @keyframes kza-fadeOut { from { opacity:1 } to { opacity:0 } }
+      @keyframes kza-popIn   { from { transform:scale(.4) translateY(40px); opacity:0 } to { transform:scale(1) translateY(0); opacity:1 } }
+      @keyframes kza-float   { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-10px) } }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <!-- Pass Django URL to JS before entering verbatim block -->
+    <script>var _TOUR_URL = "{% url 'mark_tour_seen' %}";</script>
+    {% verbatim %}
+    <script>
+    (function () {
+      function getCsrf() {
+        var m = document.cookie.match(/csrftoken=([^;]+)/);
+        return m ? m[1] : '';
+      }
+      function markDone() {
+        fetch(_TOUR_URL, {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' }
+        }).catch(function () {});
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        var d = window.driver.js.driver;
+        var mobile = window.innerWidth < 768;
+
+        /* ── Mobile sidebar helpers ─────────────────────────────────────────
+           We suppress the CSS transition so Driver.js measures the element
+           position AFTER the sidebar is fully open (no timing race).        */
+        var mobileSidebar = document.getElementById('l1-mobile-sidebar');
+        var mobileOverlay = document.getElementById('mobile-overlay');
+
+        function openDrawerInstant() {
+          if (!mobileSidebar) return;
+          mobileSidebar.style.transition = 'none';
+          mobileSidebar.classList.remove('-translate-x-full');
+          /* re-enable transition after Driver.js has had a frame to measure */
+          requestAnimationFrame(function () {
+            mobileSidebar.style.transition = '';
+          });
+        }
+        function closeDrawerInstant() {
+          if (!mobileSidebar) return;
+          mobileSidebar.style.transition = 'none';
+          mobileSidebar.classList.add('-translate-x-full');
+          if (mobileOverlay) mobileOverlay.classList.add('hidden');
+          requestAnimationFrame(function () {
+            mobileSidebar.style.transition = '';
+          });
+        }
+
+        /* ── Element selector helpers ────────────────────────────────────── */
+        function exists(sel) {
+          return sel && !!document.querySelector(sel);
+        }
+
+        /* On desktop scope to #l1-sidebar; on mobile scope to #l1-mobile-sidebar.
+           The mobile drawer IS in the DOM — we open it before Driver.js highlights. */
+        function sidebarItem(page) {
+          return mobile
+            ? '#l1-mobile-sidebar [data-page="' + page + '"]'
+            : '#l1-sidebar [data-page="' + page + '"]';
+        }
+
+        /* ── Steps ─────────────────────────────────────────────────────────
+           Each step carries a custom `_mobileDrawer` flag so the global
+           onHighlightStarted callback knows whether to open or close the drawer. */
+        var steps = [
+          {
+            _mobileDrawer: false,
+            element: mobile ? '#mobileL1SidebarToggle' : '#l1-sidebar',
+            popover: {
+              title: '👋 Welcome to Kuza Ndoto Academy!',
+              description: mobile
+                ? 'This is the <strong>menu button</strong>. The tour will now open the navigation so you can see each section highlighted.'
+                : 'This is your <strong>navigation sidebar</strong>. Hover over it to expand and reach every section of the platform.',
+              side: mobile ? 'bottom' : 'right', align: 'start'
+            }
+          },
+          {
+            _mobileDrawer: true,
+            element: sidebarItem('my-courses'),
+            popover: {
+              title: '🎓 My Courses',
+              description: 'Browse all your <strong>enrolled courses</strong> — each with structured modules, video lessons, PDFs, quizzes, and a certificate on completion.',
+              side: 'right', align: 'center'
+            }
+          },
+          {
+            _mobileDrawer: true,
+            element: sidebarItem('certificates'),
+            popover: {
+              title: '🏆 Certificates',
+              description: 'After finishing a course your <strong>certificate is auto-generated</strong> here. Download it as a PDF to share on LinkedIn or with employers.',
+              side: 'right', align: 'center'
+            }
+          },
+          {
+            _mobileDrawer: true,
+            element: sidebarItem('ebooks'),
+            popover: {
+              title: '📚 eBooks',
+              description: 'Read <strong>supplementary eBooks</strong> right inside the platform with our built-in PDF viewer — no downloads required.',
+              side: 'right', align: 'center'
+            }
+          },
+          {
+            _mobileDrawer: true,
+            element: sidebarItem('quizzes'),
+            popover: {
+              title: '✅ Quizzes',
+              description: 'Test your knowledge with <strong>module quizzes</strong>. Each quiz is linked to a course module and gives you instant feedback.',
+              side: 'right', align: 'center'
+            }
+          },
+          {
+            _mobileDrawer: true,
+            element: sidebarItem('settings'),
+            popover: {
+              title: '⚙️ Settings',
+              description: 'Update your <strong>profile, photo, and contact details</strong> here to personalise your learning experience.',
+              side: 'right', align: 'center'
+            }
+          },
+          {
+            _mobileDrawer: false,
+            element: mobile ? undefined : '#global-search-form',
+            popover: {
+              title: '🔍 Search Everything',
+              description: 'Use the <strong>search bar</strong> to instantly find courses, lessons, ebooks, and quizzes — just start typing.',
+              side: 'bottom', align: 'center'
+            }
+          },
+          {
+            _mobileDrawer: false,
+            element: '#themeToggle',
+            popover: {
+              title: '🌙 Dark / Light Mode',
+              description: 'Switch between <strong>dark and light themes</strong> anytime to suit your study environment.',
+              side: 'bottom', align: 'end'
+            }
+          },
+          {
+            _mobileDrawer: false,
+            element: '#chatbotToggle',
+            popover: {
+              title: '🤖 Meet Tabby — Your Study Buddy',
+              description: 'Tap the robot icon anytime to open <strong>Tabby</strong>, your AI-powered assistant. Ask questions, clarify concepts, or quiz yourself!',
+              side: 'top', align: 'end'
+            }
+          }
+        ];
+
+        /* Drop steps whose element selector doesn't exist at all in the DOM.
+           Steps with element=undefined are kept → Driver.js shows a centred popup. */
+        steps = steps.filter(function (s) {
+          return s.element === undefined || exists(s.element);
+        });
+
+        /* Reference to the last step — used to detect "Get Started" vs skip */
+        var lastStep = steps[steps.length - 1];
+        var _tourCompleted = false;
+
+        /* ── Celebration ───────────────────────────────────────────────────── */
+        function showCelebration() {
+          var sm = window.innerWidth < 480; /* small phone */
+          var colors = ['#00878d','#FFD700','#FF6B6B','#4ECDC4','#C084FC','#FB923C'];
+
+          /* canvas-confetti creates a position:fixed canvas so body overflow:hidden
+             does not clip it — safe on all mobile browsers */
+          if (typeof confetti === 'function') {
+            /* --- big balloon burst from bottom-centre --- */
+            confetti({
+              particleCount: sm ? 70 : 130,
+              spread: 90,
+              origin: { x: 0.5, y: 0.95 },
+              colors: colors,
+              shapes: ['circle'],
+              scalar: sm ? 1.6 : 2.2,
+              gravity: 0.45,
+              drift: 0,
+              ticks: 480
+            });
+            /* --- ribbon streamers from left & right edges --- */
+            var end = Date.now() + (sm ? 2200 : 3000);
+            (function frame() {
+              confetti({ particleCount: sm?3:5, angle:60,  spread:50, origin:{x:0}, colors:colors, shapes:['rect'], scalar:0.85, gravity:1.0 });
+              confetti({ particleCount: sm?3:5, angle:120, spread:50, origin:{x:1}, colors:colors, shapes:['rect'], scalar:0.85, gravity:1.0 });
+              if (Date.now() < end) requestAnimationFrame(frame);
+            })();
+          }
+
+          /* --- celebration modal --- */
+          var overlay = document.createElement('div');
+          overlay.setAttribute('role', 'dialog');
+          overlay.setAttribute('aria-modal', 'true');
+          overlay.setAttribute('aria-label', 'Congratulations');
+          /* overflow:visible on overlay so card spring-animation is not clipped */
+          overlay.style.cssText = [
+            'position:fixed', 'top:0', 'left:0', 'right:0', 'bottom:0',
+            'z-index:100001',
+            'display:flex', 'align-items:center', 'justify-content:center',
+            'padding:16px',                       /* prevent card touching edges */
+            'background:rgba(0,0,0,0.45)',
+            '-webkit-backdrop-filter:blur(8px)',  /* Safari */
+            'backdrop-filter:blur(8px)',
+            'animation:kza-fadeIn .3s ease',
+            'overflow:auto',                      /* allow scroll if card taller than viewport */
+            'box-sizing:border-box'
+          ].join(';');
+
+          var card = document.createElement('div');
+          card.style.cssText = [
+            'background:#fff',
+            'border-radius:' + (sm ? '20px' : '28px'),
+            'padding:' + (sm ? '28px 20px 24px' : '40px 44px 36px'),
+            'text-align:center',
+            'width:100%',
+            'max-width:' + (sm ? '340px' : '420px'),
+            'box-shadow:0 32px 80px rgba(0,0,0,0.28)',
+            'animation:kza-popIn .45s cubic-bezier(.34,1.56,.64,1)',
+            'position:relative',
+            'flex-shrink:0'         /* don't compress inside flex overlay */
+          ].join(';');
+
+          var emojiSz  = sm ? '3.6rem' : '4.8rem';
+          var headSz   = sm ? '1.25rem' : '1.65rem';
+          var bodySz   = sm ? '0.875rem' : '0.95rem';
+          var btnPad   = sm ? '12px 28px' : '15px 40px';
+          var btnSz    = sm ? '0.9rem' : '1rem';
+
+          card.innerHTML = [
+            '<div style="font-size:' + emojiSz + ';line-height:1;margin-bottom:12px;animation:kza-float 2s ease-in-out infinite">🎉</div>',
+            '<h2 style="font-size:' + headSz + ';font-weight:800;color:#0f172a;margin:0 0 10px;line-height:1.2">You\'re all set!</h2>',
+            '<p style="font-size:' + bodySz + ';color:#6b7280;line-height:1.7;margin:0 0 ' + (sm?'20px':'28px') + '">',
+              'Welcome to <strong style="color:#00878d">Kuza Ndoto Academy</strong>.<br>',
+              'Your learning journey starts <em>right now</em>&nbsp;🚀',
+            '</p>',
+            '<button id="kza-start-btn" style="',
+              'display:inline-block;',
+              'background:#00878d;color:#fff;',
+              'border:none;border-radius:' + (sm?'12px':'14px') + ';',
+              'padding:' + btnPad + ';',
+              'font-size:' + btnSz + ';font-weight:700;',
+              'cursor:pointer;letter-spacing:.02em;',
+              'box-shadow:0 8px 24px rgba(0,135,141,.35);',
+              'transition:background .18s,transform .12s;',
+              '-webkit-tap-highlight-color:transparent;',   /* remove grey flash on iOS */
+              'touch-action:manipulation;',                 /* faster tap, no double-tap zoom */
+              'user-select:none',
+            '">',
+              'Start Learning&nbsp;🚀',
+            '</button>'
+          ].join('');
+
+          overlay.appendChild(card);
+          document.body.appendChild(overlay);
+
+          var btn = document.getElementById('kza-start-btn');
+          function dismiss() {
+            overlay.style.animation = 'kza-fadeOut .28s ease forwards';
+            setTimeout(function () { if (overlay.parentNode) overlay.remove(); }, 300);
+          }
+          if (btn) {
+            /* desktop hover */
+            btn.addEventListener('mouseenter', function () { btn.style.background='#006f74'; btn.style.transform='scale(1.05)'; });
+            btn.addEventListener('mouseleave', function () { btn.style.background='#00878d'; btn.style.transform=''; });
+            /* mobile press feedback */
+            btn.addEventListener('touchstart',  function () { btn.style.background='#006f74'; btn.style.transform='scale(0.97)'; }, {passive:true});
+            btn.addEventListener('touchend',    function () { btn.style.background='#00878d'; btn.style.transform=''; }, {passive:true});
+            btn.addEventListener('click', dismiss);
+          }
+          /* tap backdrop to close */
+          overlay.addEventListener('click', function (e) { if (e.target === overlay) dismiss(); });
+          /* auto-dismiss after 10 s */
+          setTimeout(dismiss, 10000);
+        }
+
+
+
+        var driverObj = d({
+          animate: true,
+          showProgress: true,
+          showButtons: ['next', 'previous', 'close'],
+          nextBtnText: 'Next →',
+          prevBtnText: '← Back',
+          doneBtnText: '🎉 Get Started!',
+          overlayOpacity: 0.55,
+          allowClose: true,
+          stagePadding: 8,
+          stageRadius: 10,
+          progressText: '{{current}} of {{total}}',
+
+          /* Detect "Get Started" click on the last step */
+          onNextClick: function (el, step) {
+            if (step === lastStep) {
+              _tourCompleted = true;
+            }
+            driverObj.moveNext();
+          },
+
+          /* Open/close mobile drawer before Driver.js positions the highlight */
+          onHighlightStarted: function (el, step) {
+            if (!mobile) return;
+            var needsDrawer = step && step._mobileDrawer;
+            if (needsDrawer) { openDrawerInstant(); } else { closeDrawerInstant(); }
+          },
+
+          onDestroyStarted: function () {
+            if (mobile) closeDrawerInstant();
+            markDone();
+            var celebrate = _tourCompleted;
+            driverObj.destroy();
+            if (celebrate) {
+              setTimeout(showCelebration, 250);
+            }
+          },
+
+          steps: steps
+        });
+
+        setTimeout(function () { driverObj.drive(); }, 900);
+      });
+    })();
+    </script>
+    {% endverbatim %}
+    {% endif %}{% endif %}
+
 </body>
 </html>

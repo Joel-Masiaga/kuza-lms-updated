@@ -215,3 +215,17 @@ def newsletter(request):
     return render(request=request, template_name='users/newsletter.html', context={'form': form})
         
 
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
+@login_required
+@require_POST
+def mark_tour_seen(request):
+    """Called via fetch() when user finishes or skips the onboarding tour."""
+    try:
+        profile = request.user.profile
+        profile.has_seen_tour = True
+        profile.save(update_fields=['has_seen_tour'])
+        return JsonResponse({'status': 'ok'})
+    except Exception:
+        return JsonResponse({'status': 'error'}, status=400)

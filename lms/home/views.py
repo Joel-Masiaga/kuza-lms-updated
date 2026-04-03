@@ -712,15 +712,32 @@ class EbookStreamView(View):
             raise Http404("Ebook is not a PDF.")
 
         try:
-            # --- FIXED APPROACH ---
-            # Get the Cloudinary file URL directly
-            file_url = ebook.file.url
-            
-            # For production with Cloudinary, we have two options:
-            
-            # Option 1: Redirect to Cloudinary URL (Recommended)
-            # This lets Cloudinary handle the PDF serving directly
-            return HttpResponseRedirect(file_url)
+            import os
+            file_name = getattr(ebook.file, 'name', None)
+            if file_name:
+                local_path = os.path.join(settings.MEDIA_ROOT, file_name)
+                if os.path.exists(local_path):
+                    with open(local_path, 'rb') as f:
+                        pdf_content = f.read()
+                    response = HttpResponse(pdf_content, content_type='application/pdf')
+                    response['Content-Disposition'] = 'inline; filename="ebook.pdf"'
+                    return response
+
+            if getattr(settings, 'ENVIRONMENT', '') == 'production':
+                return HttpResponseRedirect(ebook.file.url)
+            else:
+                pdf_content = ebook.file.read()
+                response = HttpResponse(pdf_content, content_type='application/pdf')
+                response['Content-Disposition'] = 'inline; filename="ebook.pdf"'
+                return response
+
+        except urllib.error.URLError as e:
+            print(f"Error fetching ebook {slug} from Cloudinary: {e}")
+            raise Http404("File not found on cloud storage.")
+        except Exception as e:
+            print(f"Error serving ebook {slug}: {e}")
+            return HttpResponse("Error serving file.", status=500)
+
 
 @method_decorator(login_required, name='dispatch')
 class LessonStreamView(View):
@@ -736,13 +753,49 @@ class LessonStreamView(View):
             raise Http404("PDF file not found for this lesson.")
 
         try:
-            # --- FIXED APPROACH ---
-            # Get the Cloudinary file URL directly
-            file_url = lesson.pdf_file.url
-            
-            # Redirect to Cloudinary URL (Recommended)
-            return HttpResponseRedirect(file_url)
-            
+            import os
+            file_name = getattr(lesson.pdf_file, 'name', None)
+
+            # 1. Serve from local disk (works dev + locally-stored files)
+            if file_name:
+                local_path = os.path.join(settings.MEDIA_ROOT, file_name)
+                if os.path.exists(local_path):
+                    with open(local_path, 'rb') as f:
+                        pdf_content = f.read()
+                    response = HttpResponse(pdf_content, content_type='application/pdf')
+                    response['Content-Disposition'] = 'inline; filename="lesson.pdf"'
+                    return response
+
+            # 2. Production: fetch from Cloudinary server-side using signed URL
+            if getattr(settings, 'ENVIRONMENT', '') == 'production':
+                import cloudinary
+                import requests as req_lib
+
+                public_id = file_name or ''
+                media_path = getattr(settings, 'MEDIA_URL', '').strip('/')
+                if media_path and not public_id.startswith(media_path):
+                    public_id = f"{media_path}/{public_id}"
+
+                download_url = cloudinary.utils.private_download_url(
+                    public_id,
+                    'pdf',
+                    resource_type='raw',
+                    type='upload',
+                    expires_at=int(__import__('time').time()) + 60,
+                )
+                cloud_response = req_lib.get(download_url, timeout=30)
+                cloud_response.raise_for_status()
+
+                response = HttpResponse(cloud_response.content, content_type='application/pdf')
+                response['Content-Disposition'] = 'inline; filename="lesson.pdf"'
+                return response
+
+            # 3. Fallback: read directly from storage
+            pdf_content = lesson.pdf_file.read()
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = 'inline; filename="lesson.pdf"'
+            return response
+
         except Exception as e:
             print(f"Error serving lesson PDF {pk}: {e}")
             return HttpResponse("Error serving file.", status=500)
@@ -757,45 +810,129 @@ class CertificateListView(ListView):
         return Certificate.objects.filter(user=self.request.user).select_related('course').order_by('-issued_at')
 
 
+from django.views.decorators.cache import never_cache
+
 @method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name='dispatch')
 class DownloadCertificateView(View):
     def get(self, request, certificate_id):
         certificate = get_object_or_404(Certificate.objects.select_related('user', 'course'), pk=certificate_id)
-        
         if certificate.user != request.user:
             return HttpResponseForbidden("You do not have permission to download this certificate.")
 
-        # --- START FIX ---
-        #
-        # We must check for both the file field itself AND its public_id.
-        # If the file failed to save to Cloudinary, .certificate_file might exist
-        # but .public_id will be empty, crashing the cloudinary_url() call.
-        #
-        if not certificate.certificate_file or not certificate.certificate_file.public_id:
-            messages.error(request, "Certificate file is missing or still generating. Please try again in a few moments.")
+        # Fail fast if file field is empty
+        if not certificate.certificate_file:
+            messages.error(request, "Certificate file is missing or still generating.")
             return redirect('certificate_list')
-        
-        # --- END FIX ---
-
         try:
-            # 1. Build the custom filename you want the user to see
             course_title_safe = "".join([c if c.isalnum() else "_" for c in certificate.course.title])
-            # We don't need to add .pdf here; Cloudinary's 'attachment' flag handles it.
-            # Using the first part of the UUID is cleaner than the whole thing.
-            filename = f"Certificate_{course_title_safe}_{str(certificate.unique_id).split('-')[0]}"
+            filename = f"Certificate_{course_title_safe}_{certificate.unique_id}.pdf"
 
-            # 2. Use cloudinary.utils to generate a secure download URL
-            download_url, _ = cloudinary.utils.cloudinary_url(
-                public_id=certificate.certificate_file.public_id,
-                resource_type='raw', # Correct for PDFs/files
-                flags=f"attachment:{filename}" # Forces download with your custom filename
-            )
-            
-            # 3. Redirect the user to this special Cloudinary URL
-            return HttpResponseRedirect(download_url)
+            import os
+            file_name = getattr(certificate.certificate_file, 'name', None)
+
+            # 1. Try local filesystem first (works in dev, and for locally-generated certs)
+            if file_name:
+                local_path = os.path.join(settings.MEDIA_ROOT, file_name)
+                if os.path.exists(local_path):
+                    with open(local_path, 'rb') as f:
+                        file_data = f.read()
+                    response = HttpResponse(file_data, content_type='application/pdf')
+                    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                    return response
+
+            # 2. Production: fetch from Cloudinary server-side using authenticated API
+            if getattr(settings, 'ENVIRONMENT', '') == 'production':
+                import cloudinary
+                import requests as req_lib
+
+                public_id = file_name or ''
+                media_path = getattr(settings, 'MEDIA_URL', '').strip('/')
+                if media_path and not public_id.startswith(media_path):
+                    public_id = f"{media_path}/{public_id}"
+
+                # Generate a short-lived signed download URL (expires in 60s)
+                download_url = cloudinary.utils.private_download_url(
+                    public_id,
+                    'pdf',
+                    resource_type='raw',
+                    type='upload',
+                    expires_at=int(__import__('time').time()) + 60,
+                    attachment=True,
+                )
+                # Fetch the file server-side so the user never sees a Cloudinary URL
+                cloud_response = req_lib.get(download_url, timeout=30)
+                cloud_response.raise_for_status()
+
+                response = HttpResponse(cloud_response.content, content_type='application/pdf')
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                return response
+
+            # 3. Fallback: read directly from storage
+            file_data = certificate.certificate_file.read()
+            response = HttpResponse(file_data, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
 
         except Exception as e:
-            # This print statement will show the *actual* error in your console
-            print(f"Error in DownloadCertificateView for cert {certificate_id}: {e}") 
+            print(f"Certificate download error: {e}")
             messages.error(request, "An error occurred while trying to download the certificate.")
             return redirect('certificate_list')
+
+
+# ──────────────────────────────────────────────
+# Search
+# ──────────────────────────────────────────────
+class SearchView(View):
+    template_name = 'home/search_results.html'
+
+    def get(self, request):
+        q = request.GET.get('q', '').strip()
+        results = {'courses': [], 'lessons': [], 'ebooks': [], 'quizzes': []}
+
+        if q:
+            # Courses: search by title, description, category
+            courses_qs = Course.objects.filter(
+                Q(title__icontains=q) |
+                Q(description__icontains=q) |
+                Q(category__icontains=q)
+            ).distinct()
+
+            # Lessons: only visible to enrolled users
+            lessons_qs = Lesson.objects.filter(
+                Q(title__icontains=q) |
+                Q(description__icontains=q) |
+                Q(content__icontains=q)
+            ).select_related('module__course').distinct()
+
+            if request.user.is_authenticated:
+                enrolled_course_ids = Enrollment.objects.filter(
+                    user=request.user
+                ).values_list('course_id', flat=True)
+                lessons_qs = lessons_qs.filter(module__course__id__in=enrolled_course_ids)
+            else:
+                lessons_qs = Lesson.objects.none()
+
+            # Ebooks: only published ones
+            ebooks_qs = Ebook.objects.filter(
+                published=True
+            ).filter(
+                Q(title__icontains=q) |
+                Q(description__icontains=q)
+            ).select_related('category').distinct()
+
+            # Quizzes
+            quizzes_qs = Quiz.objects.filter(
+                Q(title__icontains=q) |
+                Q(module__title__icontains=q)
+            ).select_related('module__course').distinct()
+
+            results = {
+                'courses': list(courses_qs),
+                'lessons': list(lessons_qs),
+                'ebooks': list(ebooks_qs),
+                'quizzes': list(quizzes_qs),
+            }
+
+        total = sum(len(v) for v in results.values())
+        return render(request, self.template_name, {'results': results, 'query': q, 'total': total})

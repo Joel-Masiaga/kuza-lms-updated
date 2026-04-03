@@ -72,6 +72,7 @@ class Profile(models.Model):
 
     points = models.PositiveIntegerField(default=0)
     earned_badges = models.ManyToManyField('courses.Course', blank=True, related_name='awarded_to')
+    has_seen_tour = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Profile of {self.first_name or ''} {self.last_name or ''} ({self.user.email})"

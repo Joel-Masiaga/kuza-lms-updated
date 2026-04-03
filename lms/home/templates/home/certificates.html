@@ -4,10 +4,10 @@
 {% block title %}My Certificates - Kuza Ndoto Academy{% endblock %}
 
 {% block content %}
-<main class="flex-1 pt-4 pb-16 sm:p-6 bg-gray-100 dark:bg-gray-900 overflow-y-auto">
-    <h1 class="text-2xl m-6 font-bold text-gray-900 dark:text-white mb-6">My Certificates 🏅</h1>
+<main class="flex-1 pt-4 pb-20 sm:pt-6 sm:pb-6 bg-gray-100 dark:bg-gray-900 overflow-y-auto">
+    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 px-4 sm:px-6">My Certificates 🏅</h1>
 
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+    <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-md mx-4 sm:mx-6 border border-gray-100 dark:border-gray-700">
         {% if certificates %}
             <p class="text-gray-600 dark:text-gray-300 mb-6">Congratulations on your achievements! <br>Download your earned certificates below.</p>
             <div class="border-t dark:border-gray-700 pt-6 space-y-4">
@@ -16,7 +16,7 @@
                     <div class="flex items-center mb-3 sm:mb-0 text-center sm:text-left">
                         <i class="fas fa-certificate text-yellow-500 text-3xl mr-4 flex-shrink-0"></i>
                         <div>
-                            <p class="font-semibold text-gray-800 dark:text-gray-100">{{ certificate.course.title }}</p>
+                            <p class="font-bold text-lg tracking-tight text-primary-darker dark:text-primary-light">{{ certificate.course.title }}</p>
                             <p class="text-sm text-gray-500 dark:text-gray-400">Issued: {{ certificate.issued_at|date:"M d, Y" }}</p>
                              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">ID: {{ certificate.unique_id }}</p> {# Display unique ID #}
                         </div>
@@ -40,7 +40,7 @@
         {% else %}
             <p class="text-gray-600 dark:text-gray-400">You haven't earned any certificates yet. Keep learning!</p>
             <div class="mt-4">
-                 <a href="{% url 'courses' %}" class="text-primary hover:underline">Explore Courses</a>
+                 <a href="{% url 'courses' %}" class="text-primary dark:text-primary-light hover:underline">Explore Courses</a>
             </div>
         {% endif %}
     </div>

@@ -21,12 +21,12 @@
     </nav>
 
     {# Main Content Wrapper for Course Detail #}
-    <div class="max-w-5xl pb-12 mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden">
+    <div class="max-w-5xl pb-12 mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700">
         <div class="p-4 sm:p-8">
              <div class="mb-4">
                  <span class="inline-block bg-primary-light dark:bg-primary-dark text-primary-darker dark:text-primary-light text-sm font-semibold px-3 py-1 rounded-full">{{ course.get_category_display }}</span>
              </div>
-             <h1 class="text-2xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-2">{{ course.title }}</h1>
+             <h1 class="text-3xl sm:text-5xl font-black tracking-tighter text-gray-900 dark:text-white mb-2">{{ course.title }}</h1>
              <p class="text-md text-gray-500 dark:text-gray-400 mb-4">
                  Instructor: {{ course.created_by.profile.first_name|default:'' }} {{ course.created_by.profile.last_name|default:course.created_by.email }}
                  <span class="text-xs ml-2">(Created: {{ course.created_at|date:"M d, Y" }})</span> {# Added Creation Date #}
@@ -123,7 +123,7 @@
                         <ul class="list-disc pl-5 space-y-1 text-sm text-gray-700 dark:text-gray-300">
                             {% for lesson in module.lessons.all %}
                                 <li>
-                                    <a href="{% url 'lesson_detail' lesson.pk %}" class="hover:text-primary dark:hover:text-primary-light">
+                                    <a href="{% url 'lesson_detail' lesson.pk %}" class="hover:text-primary dark:hover:text-primary-light dark:text-primary-light dark:hover:text-primary-light">
                                         {{ lesson.title }}
                                     </a>
                                 </li>

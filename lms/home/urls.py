@@ -11,7 +11,8 @@ from .views import (
     DownloadCertificateView, 
     QuizAttemptListView, 
     ReviewQuizView,
-    LessonStreamView
+    LessonStreamView,
+    SearchView,
 )
 
 urlpatterns = [
@@ -41,5 +42,8 @@ urlpatterns = [
     # Certificates
     path('certificates/', CertificateListView.as_view(), name='certificate_list'),
     path('certificates/download/<int:certificate_id>/', DownloadCertificateView.as_view(), name='download_certificate'),
+
+    # Search
+    path('search/', SearchView.as_view(), name='search'),
 
 ]

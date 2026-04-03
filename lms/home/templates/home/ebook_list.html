@@ -3,21 +3,21 @@
 {% block title %}eBooks — Kuza Ndoto Academy{% endblock %}
 
 {% block content %}
-<main class="flex-1 p-4 md:p-6 pb-24 overflow-y-auto">
-  <div class="max-w-6xl mx-auto">
+<main class="flex-1 pt-4 pb-20 sm:pt-6 sm:pb-6 bg-gray-100 dark:bg-gray-900 overflow-y-auto">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
     <div class="mb-6 flex items-center justify-between">
-      <h2 class="text-2xl font-semibold">eBooks</h2>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">eBooks</h1>
 
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
       <aside class="col-span-1">
-        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md border border-gray-100 dark:border-gray-700">
           
           <label for="category_select" class="block font-semibold mb-2 text-sm text-gray-900 dark:text-white">Categories</label>
           <select id="category_select" 
                   onchange="window.location.href = this.value;"
-                  class="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2 md:p-3 text-xs md:text-sm text-gray-900 dark:text-white focus:ring-primary focus:border-primary">
+                  class="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2 md:p-3 text-xs md:text-sm text-gray-900 dark:text-white focus:ring-primary focus:border-primary dark:border-primary-light">
             <option value="{% url 'ebook_list' %}" 
                     {% if not selected_category %}selected{% endif %}>
               All ({{ ebooks.count }})
@@ -39,7 +39,7 @@
         {% if ebooks %}
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {% for ebook in ebooks %}
-              <article class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden flex">
+              <article class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden flex transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-gray-100 dark:border-gray-700 focus:outline-none">
                 <div class="w-32 flex-shrink-0 bg-gray-50 dark:bg-gray-900">
                   {% if ebook.cover_image %}
                     <img src="{{ ebook.cover_image.url }}" alt="{{ ebook.title }}" class="h-32 w-full object-cover">
@@ -49,8 +49,8 @@
                 </div>
                 <div class="p-4 flex flex-col justify-between flex-1">
                   <div>
-                    <h4 class="text-lg font-semibold">{{ ebook.title }}</h4>
-                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                    <h4 class="font-bold text-lg tracking-tight text-primary-darker dark:text-primary-light hover:text-primary dark:hover:text-primary-light dark:text-primary-light transition-colors">{{ ebook.title }}</h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
                       {% if ebook.description %}
                         {{ ebook.description|striptags|truncatechars:160 }}
                       {% else %}

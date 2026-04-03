@@ -161,11 +161,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
+
 import os
 
-STATIC_URL = 'static/'
+from dotenv import load_dotenv
+
+load_dotenv()
+
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 if ENVIRONMENT == 'development':
     # Development Settings
@@ -180,8 +188,6 @@ if ENVIRONMENT == 'development':
             "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
     }
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 else:
     # Production Settings
     CLOUDINARY_URL = f"cloudinary://{os.getenv('CLOUDINARY_API_KEY')}:{os.getenv('CLOUDINARY_API_SECRET')}@{os.getenv('CLOUDINARY_CLOUD_NAME')}"
@@ -197,9 +203,6 @@ else:
             "BACKEND": "cloudinary_storage.storage.RawMediaCloudinaryStorage",
         },
     }
-    
-    # Fix the MEDIA_URL format
-    MEDIA_URL = "/"
 
     # Additional Cloudinary settings
     CLOUDINARY_STORAGE = {
@@ -386,15 +389,15 @@ DATABASES = {
 # Check if ENVIRONMENT is 'production' (set on your server)
 # or if you've set POSTGRES_LOCALLY=True in your local .env file
 # to connect your local machine to the AWS database.
-POSTGRES_LOCALLY = False
-ENVIRONMENT = os.getenv('ENVIRONMENT', 'development') 
+# POSTGRES_LOCALLY = False
+# ENVIRONMENT = os.getenv('ENVIRONMENT', 'development') 
 
-if ENVIRONMENT == 'production' or POSTGRES_LOCALLY==False:
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('AWS_DB_NAME'),
-        'USER': os.getenv('AWS_DB_USER'),
-        'PASSWORD': os.getenv('AWS_DB_PASSWORD'),
-        'HOST': os.getenv('AWS_DB_HOST'), 
-        'PORT': os.getenv('AWS_DB_PORT', '5432'), 
-    }
+# if ENVIRONMENT == 'production' or POSTGRES_LOCALLY==False:
+#     DATABASES['default'] = {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('AWS_DB_NAME'),
+#         'USER': os.getenv('AWS_DB_USER'),
+#         'PASSWORD': os.getenv('AWS_DB_PASSWORD'),
+#         'HOST': os.getenv('AWS_DB_HOST'), 
+#         'PORT': os.getenv('AWS_DB_PORT', '5432'), 
+#     }

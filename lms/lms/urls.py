@@ -41,6 +41,7 @@ urlpatterns = [
     path('subscribe/', user_views.subscribe, name='subscribe'),
     path('unsubscribe/', user_views.unsubscribe, name='unsubscribe'),
     path('newsletter/', user_views.newsletter, name='newsletter'),
+    path('tour/done/', user_views.mark_tour_seen, name='mark_tour_seen'),
 
     path("__reload__/", include("django_browser_reload.urls")),
 ]

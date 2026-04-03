@@ -1,35 +1,183 @@
 {% extends 'home/base.html' %}
+{% load static %}
 
-{% block title %}Search Results{% endblock %}
+{% block title %}{% if query %}Search: {{ query }}{% else %}Search{% endif %} — Kuza Ndoto Academy{% endblock %}
 
 {% block content %}
-    <div class="container mt-4">
-        <h2>Search Results for "{{ request.GET.q }}"</h2>
-        
-        {% if results.courses or results.quizzes %}
-            <h3>Courses</h3>
-            {% if results.courses %}
-                <ul>
-                    {% for course in results.courses %}
-                        <li><a href="{% url 'course_detail' course.pk %}">{{ course.title }}</a></li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No matching courses found.</p>
-            {% endif %}
+<main class="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-900 p-4 sm:p-8">
+  <div class="max-w-4xl mx-auto">
 
-            <h3>Quizzes</h3>
-            {% if results.quizzes %}
-                <ul>
-                    {% for quiz in results.quizzes %}
-                        <li>{{ quiz.title }}</li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No matching quizzes found.</p>
-            {% endif %}
-        {% else %}
-            <p>No results found for your search.</p>
+    <!-- Search Bar (re-displayed on results page) -->
+    <form action="{% url 'search' %}" method="get" role="search" class="mb-8">
+      <div class="flex items-center bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-200 dark:border-gray-700">
+        <i class="fas fa-search text-gray-400 dark:text-gray-500 ml-4"></i>
+        <input id="search-page-input" type="search" name="q" value="{{ query }}"
+               placeholder="Search courses, ebooks, lessons..."
+               autocomplete="off"
+               autofocus
+               class="flex-1 py-3 px-4 bg-transparent text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none text-base">
+        <button type="submit"
+                class="shrink-0 bg-primary hover:bg-primary-dark text-white font-semibold px-6 py-3 transition-colors">
+          Search
+        </button>
+      </div>
+    </form>
+
+    <!-- Results header -->
+    {% if query %}
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+            Results for <span class="text-primary dark:text-primary-light">"{{ query }}"</span>
+          </h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {{ total }} result{{ total|pluralize }} found
+          </p>
+        </div>
+      </div>
+
+      {% if total == 0 %}
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-10 text-center">
+          <i class="fas fa-search text-5xl text-gray-300 dark:text-gray-600 mb-4"></i>
+          <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">No results found</h2>
+          <p class="text-gray-500 dark:text-gray-400 text-sm">
+            Try different keywords or check your spelling.
+          </p>
+        </div>
+      {% else %}
+
+        <!-- COURSES -->
+        {% if results.courses %}
+        <section class="mb-8">
+          <h2 class="text-lg font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
+            <i class="fas fa-graduation-cap text-primary dark:text-primary-light"></i> Courses
+            <span class="ml-auto text-sm font-normal text-gray-400">{{ results.courses|length }} result{{ results.courses|length|pluralize }}</span>
+          </h2>
+          <div class="space-y-3">
+            {% for course in results.courses %}
+            <a href="{% url 'course_detail' course.pk %}"
+               class="flex items-center gap-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 hover:shadow-md hover:border-primary dark:border-primary-light transition-all group">
+              {% if course.image %}
+                <img src="{{ course.image.url }}" alt="{{ course.title }}" class="w-16 h-16 rounded-lg object-cover flex-shrink-0">
+              {% else %}
+                <div class="w-16 h-16 rounded-lg bg-primary-light flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-book-open text-primary dark:text-primary-light text-2xl"></i>
+                </div>
+              {% endif %}
+              <div class="min-w-0">
+                <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-light dark:hover:text-primary-light dark:text-primary-light transition-colors truncate">{{ course.title }}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ course.get_category_display }}</p>
+              </div>
+              <i class="fas fa-chevron-right text-gray-400 group-hover:text-primary dark:group-hover:text-primary-light dark:hover:text-primary-light dark:text-primary-light ml-auto transition-colors"></i>
+            </a>
+            {% endfor %}
+          </div>
+        </section>
         {% endif %}
-    </div>
+
+        <!-- LESSONS -->
+        {% if results.lessons %}
+        <section class="mb-8">
+          <h2 class="text-lg font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
+            <i class="fas fa-file-alt text-primary dark:text-primary-light"></i> Lessons
+            <span class="ml-auto text-sm font-normal text-gray-400">{{ results.lessons|length }} result{{ results.lessons|length|pluralize }}</span>
+          </h2>
+          <div class="space-y-3">
+            {% for lesson in results.lessons %}
+            <a href="{% url 'lesson_detail' lesson.pk %}"
+               class="flex items-center gap-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 hover:shadow-md hover:border-primary dark:border-primary-light transition-all group">
+              <div class="w-14 h-14 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                {% if lesson.pdf_file %}
+                  <i class="fas fa-file-pdf text-red-500 text-xl"></i>
+                {% elif lesson.videos.exists %}
+                  <i class="fas fa-video text-blue-500 text-xl"></i>
+                {% else %}
+                  <i class="fas fa-file-alt text-gray-500 text-xl"></i>
+                {% endif %}
+              </div>
+              <div class="min-w-0">
+                <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-light dark:hover:text-primary-light dark:text-primary-light transition-colors truncate">{{ lesson.title }}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  {{ lesson.module.course.title }} › {{ lesson.module.title }}
+                </p>
+              </div>
+              <i class="fas fa-chevron-right text-gray-400 group-hover:text-primary dark:group-hover:text-primary-light dark:hover:text-primary-light dark:text-primary-light ml-auto transition-colors"></i>
+            </a>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- EBOOKS -->
+        {% if results.ebooks %}
+        <section class="mb-8">
+          <h2 class="text-lg font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
+            <i class="fas fa-book text-primary dark:text-primary-light"></i> eBooks
+            <span class="ml-auto text-sm font-normal text-gray-400">{{ results.ebooks|length }} result{{ results.ebooks|length|pluralize }}</span>
+          </h2>
+          <div class="space-y-3">
+            {% for ebook in results.ebooks %}
+            <a href="{% url 'ebook_detail' ebook.slug %}"
+               class="flex items-center gap-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 hover:shadow-md hover:border-primary dark:border-primary-light transition-all group">
+              {% if ebook.cover_image %}
+                <img src="{{ ebook.cover_image.url }}" alt="{{ ebook.title }}" class="w-16 h-16 rounded-lg object-cover flex-shrink-0">
+              {% else %}
+                <div class="w-16 h-16 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-book text-green-500 text-2xl"></i>
+                </div>
+              {% endif %}
+              <div class="min-w-0">
+                <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-light dark:hover:text-primary-light dark:text-primary-light transition-colors truncate">{{ ebook.title }}</h3>
+                {% if ebook.category %}
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ ebook.category.name }}</p>
+                {% endif %}
+              </div>
+              <i class="fas fa-chevron-right text-gray-400 group-hover:text-primary dark:group-hover:text-primary-light dark:hover:text-primary-light dark:text-primary-light ml-auto transition-colors"></i>
+            </a>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- QUIZZES -->
+        {% if results.quizzes %}
+        <section class="mb-8">
+          <h2 class="text-lg font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
+            <i class="fas fa-list-check text-primary dark:text-primary-light"></i> Quizzes
+            <span class="ml-auto text-sm font-normal text-gray-400">{{ results.quizzes|length }} result{{ results.quizzes|length|pluralize }}</span>
+          </h2>
+          <div class="space-y-3">
+            {% for quiz in results.quizzes %}
+            <a href="{% url 'quiz_detail' quiz.id %}"
+               class="flex items-center gap-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 hover:shadow-md hover:border-primary dark:border-primary-light transition-all group">
+              <div class="w-14 h-14 rounded-lg bg-yellow-50 dark:bg-yellow-900/30 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-question-circle text-yellow-500 text-xl"></i>
+              </div>
+              <div class="min-w-0">
+                <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-light dark:hover:text-primary-light dark:text-primary-light transition-colors truncate">{{ quiz.title }}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  {{ quiz.module.course.title }} › {{ quiz.module.title }}
+                </p>
+              </div>
+              <i class="fas fa-chevron-right text-gray-400 group-hover:text-primary dark:group-hover:text-primary-light dark:hover:text-primary-light dark:text-primary-light ml-auto transition-colors"></i>
+            </a>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+      {% endif %}
+    {% else %}
+      <!-- Empty state (no query yet) -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-12 text-center">
+        <i class="fas fa-search text-6xl text-gray-200 dark:text-gray-700 mb-5"></i>
+        <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">What are you looking for?</h2>
+        <p class="text-gray-500 dark:text-gray-400 text-sm">
+          Search across courses, lessons, ebooks and quizzes.
+        </p>
+      </div>
+    {% endif %}
+
+  </div>
+</main>
 {% endblock %}

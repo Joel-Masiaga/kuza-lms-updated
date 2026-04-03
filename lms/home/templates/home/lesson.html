@@ -255,7 +255,7 @@
                         {% for lesson_item in module_item.lessons.all %}
                             <li>
                                 <a href="{% url 'lesson_detail' lesson_item.pk %}"
-                                   class="lesson-link flex items-center justify-between p-3 rounded-lg {% if lesson_item.id == lesson.id %}bg-white dark:bg-gray-900 border border-primary shadow-sm{% else %}hover:bg-gray-200 dark:hover:bg-gray-700{% endif %} transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 group"
+                                   class="lesson-link flex items-center justify-between p-3 rounded-lg {% if lesson_item.id == lesson.id %}bg-white dark:bg-gray-900 border border-primary dark:border-primary-light shadow-sm{% else %}hover:bg-gray-200 dark:hover:bg-gray-700{% endif %} transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 group"
                                    data-lesson-id="{{ lesson_item.id }}" data-module-id="{{ module_item.id }}">
                                     <div class="flex items-center truncate">
                                         <span class="flex items-center justify-center h-10 w-10 rounded-lg {% if lesson_item.id == lesson.id %}bg-primary-light dark:bg-primary-dark{% else %}bg-gray-200 dark:bg-gray-700{% endif %} flex-shrink-0">
@@ -269,7 +269,7 @@
                                             {% endif %}
                                         </span>
                                         <div class="ml-3 truncate">
-                                            <span class="block font-medium text-sm {% if lesson_item.id == lesson.id %}text-primary{% else %}text-gray-800 dark:text-gray-300{% endif %} truncate group-hover:text-primary dark:group-hover:text-primary-light transition-colors">{{ lesson_item.title }}</span>
+                                            <span class="block font-medium text-sm {% if lesson_item.id == lesson.id %}text-primary dark:text-primary-light{% else %}text-gray-800 dark:text-gray-300{% endif %} truncate group-hover:text-primary dark:group-hover:text-primary-light dark:hover:text-primary-light dark:text-primary-light dark:group-hover:text-primary-light transition-colors">{{ lesson_item.title }}</span>
                                             <span class="block text-xs text-gray-500 dark:text-gray-400">Est. 5:00</span>
                                         </div>
                                     </div>
@@ -467,7 +467,7 @@
 
                 <div class="flex justify-between mt-0 p-4 sm:p-8 border-t border-gray-200 dark:border-gray-700">
                     {% if previous_lesson %}
-                    <a href="{% url 'lesson_detail' previous_lesson.pk %}" id="prev-lesson-btn" class="flex items-center text-primary hover:text-primary-dark font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-2">
+                    <a href="{% url 'lesson_detail' previous_lesson.pk %}" id="prev-lesson-btn" class="flex items-center text-primary dark:text-primary-light hover:text-primary-dark font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-2">
                         <i class="fas fa-chevron-left mr-2"></i> Previous
                     </a>
                     {% else %}
@@ -477,7 +477,7 @@
                     {% endif %}
 
                     {% if next_lesson %}
-                    <a href="{% url 'lesson_detail' next_lesson.pk %}" id="next-lesson-btn" class="flex items-center text-primary hover:text-primary-dark font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-2">
+                    <a href="{% url 'lesson_detail' next_lesson.pk %}" id="next-lesson-btn" class="flex items-center text-primary dark:text-primary-light hover:text-primary-dark font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-2">
                         Next Lesson <i class="fas fa-chevron-right ml-2"></i>
                     </a>
                     {% else %}
@@ -601,7 +601,7 @@
                     </div>
 
                     <div class="pt-3 flex flex-col">
-                        <textarea id="notes-textarea" class="w-full notes-textarea p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary focus:border-primary resize-none" placeholder="Add notes for this lesson..."></textarea>
+                        <textarea id="notes-textarea" class="w-full notes-textarea p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary focus:border-primary dark:border-primary-light resize-none" placeholder="Add notes for this lesson..."></textarea>
                         <div class="flex justify-end items-center mt-2">
                             <span id="notes-char-count" class="text-sm text-gray-500 mr-4">0 / 1000</span>
                             <button id="notes-save-btn" class="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-6 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800">Save</button>
@@ -699,43 +699,71 @@
 
         // PDF viewer init (only if lesson has pdf_file)
         {% if lesson.pdf_file %}
-        (function initPdfViewer(){
-    if (!window.pdfjsLib) { console.warn('pdfjsLib not loaded'); return; }
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        (function initPdfViewer() {
+            if (!window.pdfjsLib) { console.warn('pdfjsLib not loaded'); return; }
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-    const pdfUrl = "{% url 'lesson_stream' lesson.pk %}";
-    
-    // Fetch with credentials and handle response
-   fetch(pdfUrl, { 
-    credentials: 'include'
-})
-.then(res => {
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    
-    // If it's a redirect (which it will be with our new view), follow it
-    if (res.redirected) {
-        // For redirects, we need to use the final URL
-        return fetch(res.url, { 
-            credentials: 'omit' // Don't send cookies to Cloudinary
-        });
-    }
-    return res;
-})
-.then(res => {
-    if (!res.ok) throw new Error(`Failed to fetch PDF: ${res.status}`);
-    return res.arrayBuffer();
-})
-.then(buffer => pdfjsLib.getDocument({ data: buffer }).promise)
-.then(doc => {
-    pdfDoc = doc;
-    pageCountEl.textContent = pdfDoc.numPages;
-    queueRenderPage(1);
-})
-.catch(err => {
-    console.error('Failed to load PDF:', err);
-    // Show user-friendly error message
-    wrap.innerHTML = `<div class="p-4 text-red-600">Unable to load PDF: ${err.message}. Please try refreshing the page.</div>`;
-});
+            const pdfUrl = "{% url 'lesson_stream' lesson.pk %}";
+            const canvas = document.getElementById('pdf-canvas');
+            const wrap = document.getElementById('pdf-canvas-wrap');
+            if (!canvas || !wrap) return;
+            const ctx = canvas.getContext('2d');
+
+            const pageNumEl  = document.getElementById('pdf-page-num');
+            const pageCountEl = document.getElementById('pdf-page-count');
+            const pageInput  = document.getElementById('pdf-page-input');
+            const prevBtn    = document.getElementById('pdf-prev');
+            const nextBtn    = document.getElementById('pdf-next');
+            const goBtn      = document.getElementById('pdf-go');
+            const zoomIn     = document.getElementById('pdf-zoom-in');
+            const zoomOut    = document.getElementById('pdf-zoom-out');
+
+            let pdfDoc      = null;
+            let currentPage = 1;
+            let scale       = 1.0;
+            let isFitMode   = true;
+            let renderTask  = null;
+
+            const SCALE_STEP = 0.15;
+            const MIN_SCALE  = 0.5;
+            const MAX_SCALE  = 6.0;
+            const DPR = Math.max(1, window.devicePixelRatio || 1);
+
+            function computeFitScale(page) {
+                const vp = page.getViewport({ scale: 1 });
+                const rect = wrap.getBoundingClientRect();
+                const availW = Math.max(200, rect.width - 24);
+                const availH = Math.max(200, rect.height - 24);
+                return Math.max(MIN_SCALE, Math.min(Math.min(availW / vp.width, availH / vp.height), MAX_SCALE));
+            }
+
+            async function renderPage(num) {
+                if (!pdfDoc) return;
+                try {
+                    if (renderTask && typeof renderTask.cancel === 'function') { renderTask.cancel(); renderTask = null; }
+                    const page = await pdfDoc.getPage(num);
+                    if (isFitMode) scale = computeFitScale(page);
+                    const viewport = page.getViewport({ scale });
+                    canvas.width  = Math.round(viewport.width * DPR);
+                    canvas.height = Math.round(viewport.height * DPR);
+                    canvas.style.width  = Math.round(viewport.width) + 'px';
+                    canvas.style.height = Math.round(viewport.height) + 'px';
+                    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    renderTask = page.render({ canvasContext: ctx, viewport, intent: 'display' });
+                    await renderTask.promise;
+                    renderTask = null;
+                    pageNumEl.textContent  = currentPage;
+                    pageInput.value        = currentPage;
+                    pageCountEl.textContent = pdfDoc.numPages;
+                    prevBtn.disabled = currentPage <= 1;
+                    nextBtn.disabled = currentPage >= pdfDoc.numPages;
+                } catch (e) {
+                    if (e && (e.name === 'RenderingCancelledException' || (e.message && e.message.includes('Rendering cancelled')))) return;
+                    console.error('Render error', e);
+                    wrap.innerHTML = '<div class="p-4 text-red-600">Unable to render PDF page.</div>';
+                }
+            }
 
             function queueRenderPage(num) {
                 if (!pdfDoc) return;
@@ -745,42 +773,46 @@
                 renderPage(currentPage);
             }
 
-            // load as arrayBuffer (reduces casual direct exposure)
+            // Load PDF — single fetch, receive bytes from Django (works with Cloudinary proxy too)
             fetch(pdfUrl, { credentials: 'same-origin' })
-                .then(res => { if (!res.ok) throw new Error('Could not fetch PDF'); return res.arrayBuffer(); })
-                .then(buffer => pdfjsLib.getDocument({ data: buffer }).promise)
-                .then(doc => { pdfDoc = doc; pageCountEl.textContent = pdfDoc.numPages; queueRenderPage(1); })
-                .catch(err => { console.error('Failed to load PDF', err); wrap.innerHTML = '<div class="p-4 text-red-600">Unable to load PDF preview.</div>'; });
+                .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.arrayBuffer(); })
+                .then(buf => pdfjsLib.getDocument({ data: buf }).promise)
+                .then(async doc => {
+                    pdfDoc = doc;
+                    pageCountEl.textContent = pdfDoc.numPages;
+                    try {
+                        const first = await pdfDoc.getPage(1);
+                        scale = computeFitScale(first);
+                    } catch { scale = 1.0; }
+                    queueRenderPage(1);
+                })
+                .catch(err => {
+                    console.error('Failed to load PDF', err);
+                    wrap.innerHTML = `<div class="p-4 text-red-600">Unable to load PDF preview: ${err.message}</div>`;
+                });
 
-            // controls
-            prevBtn.addEventListener('click', ()=> queueRenderPage(currentPage - 1));
-            nextBtn.addEventListener('click', ()=> queueRenderPage(currentPage + 1));
-            goBtn.addEventListener('click', ()=> { const val = parseInt(pageInput.value, 10); if (!isNaN(val)) queueRenderPage(val); });
-            pageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); goBtn.click(); } });
+            prevBtn && prevBtn.addEventListener('click', () => queueRenderPage(currentPage - 1));
+            nextBtn && nextBtn.addEventListener('click', () => queueRenderPage(currentPage + 1));
+            goBtn   && goBtn.addEventListener('click', () => { const v = parseInt(pageInput.value, 10); if (!isNaN(v)) queueRenderPage(v); });
+            pageInput && pageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); goBtn.click(); } });
+            zoomIn  && zoomIn.addEventListener('click', () => { isFitMode = false; scale = Math.min(MAX_SCALE, +(scale + SCALE_STEP).toFixed(3)); queueRenderPage(currentPage); });
+            zoomOut && zoomOut.addEventListener('click', () => { isFitMode = false; scale = Math.max(MIN_SCALE, +(scale - SCALE_STEP).toFixed(3)); queueRenderPage(currentPage); });
 
-            zoomIn && zoomIn.addEventListener('click', ()=> { scale = Math.min(MAX_SCALE, +(scale + SCALE_STEP).toFixed(2)); queueRenderPage(currentPage); });
-            zoomOut && zoomOut.addEventListener('click', ()=> { scale = Math.max(MIN_SCALE, +(scale - SCALE_STEP).toFixed(2)); queueRenderPage(currentPage); });
-
-            // prevent right-click/context and simple copy attempts on viewer area
-            const viewerEl = document.getElementById('pdf-viewer');
-            viewerEl && viewerEl.addEventListener('contextmenu', (e) => e.preventDefault());
-
-            // keyboard navigation
             document.addEventListener('keydown', (e) => {
                 if (/input|textarea/i.test(document.activeElement.tagName)) return;
-                if (e.key === 'ArrowLeft') { e.preventDefault(); prevBtn.click(); }
-                if (e.key === 'ArrowRight') { e.preventDefault(); nextBtn.click(); }
-                if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomIn && zoomIn.click(); }
-                if (e.key === '-') { e.preventDefault(); zoomOut && zoomOut.click(); }
+                if (e.key === 'ArrowLeft')          { e.preventDefault(); prevBtn && prevBtn.click(); }
+                if (e.key === 'ArrowRight')         { e.preventDefault(); nextBtn && nextBtn.click(); }
+                if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomIn  && zoomIn.click(); }
+                if (e.key === '-')                  { e.preventDefault(); zoomOut && zoomOut.click(); }
             });
 
-            // touch swipe
+            // Touch swipe
             let touchStartX = 0;
-            wrap.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].clientX; }, {passive:true});
-            wrap.addEventListener('touchend', (e) => {
+            wrap.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+            wrap.addEventListener('touchend',   (e) => {
                 const dx = e.changedTouches[0].clientX - touchStartX;
-                if (Math.abs(dx) > 50) { if (dx < 0) nextBtn.click(); else prevBtn.click(); }
-            }, {passive:true});
+                if (Math.abs(dx) > 50) { if (dx < 0) nextBtn && nextBtn.click(); else prevBtn && prevBtn.click(); }
+            }, { passive: true });
         })();
         {% endif %}
     });
