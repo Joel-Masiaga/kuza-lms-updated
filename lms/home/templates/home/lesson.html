@@ -6,280 +6,362 @@
 
 {% block extra_css %}
 <style>
-
     /* Notes panel animation */
     #notes-panel {
         max-height: 0;
         transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1);
         overflow: hidden;
     }
+
     /* When inserted and opened we add notes-open to animate */
     #notes-panel.notes-open {
-        max-height: 18rem; /* visible height */
+        max-height: 18rem;
+        /* visible height */
     }
+
     @media (min-width: 768px) {
-        #notes-panel.notes-open { max-height: 14rem; }
+        #notes-panel.notes-open {
+            max-height: 14rem;
+        }
     }
 
     /* small visual polish so inserted panel doesn't cause layout jump */
-    .notes-inner { padding: 0.75rem 1rem; }
-    .notes-textarea { min-height: 6rem; }
+    .notes-inner {
+        padding: 0.75rem 1rem;
+    }
+
+    .notes-textarea {
+        min-height: 6rem;
+    }
 
 
     .pdf-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
 
-.pdf-controls button {
-  transition: background 0.2s ease;
-}
-.pdf-controls button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+    .pdf-controls button {
+        transition: background 0.2s ease;
+    }
 
-/* --- REMOVED ---
+    .pdf-controls button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* --- REMOVED ---
    The (max-width: 480px) media query that forced
    the PDF controls into a column has been removed.
 */
 
 
     /* PDF canvas container */
-#pdf-canvas-wrap {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  overflow: hidden;
-  background: #f9fafb;
-  border-radius: 0.75rem;
-  padding: 0.5rem;
-}
+    #pdf-canvas-wrap {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        overflow: hidden;
+        background: #f9fafb;
+        border-radius: 0.75rem;
+        padding: 0.5rem;
+    }
 
-/* PDF canvas itself */
-#pdf-canvas {
-  display: block;
-  max-width: 100%;
-  height: auto !important; /* Maintain aspect ratio */
-  margin: 0 auto;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
+    /* PDF canvas itself */
+    #pdf-canvas {
+        display: block;
+        max-width: 100%;
+        height: auto !important;
+        /* Maintain aspect ratio */
+        margin: 0 auto;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
 
-/* Mobile optimization */
-@media (max-width: 640px) {
-  #pdf-canvas-wrap {
-    padding: 0.25rem;
-  }
+    /* Mobile optimization */
+    @media (max-width: 640px) {
+        #pdf-canvas-wrap {
+            padding: 0.25rem;
+        }
 
-  #pdf-canvas {
-    width: 100% !important;
-    max-height: calc(100vh - 200px); /* avoid overflow below navbar */
-    object-fit: contain;
-  }
-}
+        #pdf-canvas {
+            width: 100% !important;
+            max-height: calc(100vh - 200px);
+            /* avoid overflow below navbar */
+            object-fit: contain;
+        }
+    }
 
-/* ---------- MOBILE SIDEBAR (card list) ---------- */
-/* Make sidebar full-width and card-like on small screens */
-@media (max-width: 767px) {
-  #lessonSidebar {
-    width: 100% !important;
-    left: 0;
-    right: 0;
-    top: 56px; /* leave navbar area */
-    height: auto;
-    max-height: calc(100vh - 56px);
-    background: transparent;
-    padding: 0 0 1rem;
-    box-shadow: none;
-    border-radius: 0;
-  }
+    /* ---------- MOBILE SIDEBAR (card list) ---------- */
+    /* Make sidebar full-width and card-like on small screens */
+    @media (max-width: 767px) {
+        #lessonSidebar {
+            width: 100% !important;
+            left: 0;
+            right: 0;
+            top: 56px;
+            /* leave navbar area */
+            height: auto;
+            max-height: calc(100vh - 56px);
+            background: transparent;
+            padding: 0 0 1rem;
+            box-shadow: none;
+            border-radius: 0;
+        }
 
-  #lessonSidebarContent {
-    padding: 0.75rem 0.75rem 2rem;
-    background: transparent;
-  }
+        #lessonSidebarContent {
+            padding: 0.75rem 0.75rem 2rem;
+            background: transparent;
+        }
 
-  /* Replace dense module accordion header with large card button */
-  .module-accordion-trigger {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1.1rem 1rem;
-    background: #ffffff;
-    border: 1px solid #e6e6e6;
-    border-radius: 12px;
-    margin-bottom: 0.6rem;
-    width: 100%;
-    box-sizing: border-box;
-    cursor: pointer;
-  }
-  .module-accordion-trigger:hover { background: #f7f7f8; }
+        /* Replace dense module accordion header with large card button */
+        .module-accordion-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1.1rem 1rem;
+            background: #ffffff;
+            border: 1px solid #e6e6e6;
+            border-radius: 12px;
+            margin-bottom: 0.6rem;
+            width: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
 
-  /* Move chevron to far right */
-  .module-accordion-trigger .accordion-icon {
-    margin-left: auto;
-    color: #6b7280; /* gray-500 */
-    font-size: 0.95rem;
-  }
+        .module-accordion-trigger:hover {
+            background: #f7f7f8;
+        }
 
-  /* Hide the small circle icon for lessons on mobile for a simplified list view */
-  .lesson-link > .flex > span:first-child {
-    display: none;
-  }
+        /* Move chevron to far right */
+        .module-accordion-trigger .accordion-icon {
+            margin-left: auto;
+            color: #6b7280;
+            /* gray-500 */
+            font-size: 0.95rem;
+        }
 
-  /* Make lesson rows full-width simple rows like screenshot */
-  .module-accordion-content {
-    margin-top: 0.5rem;
-    padding-left: 0;
-  }
+        /* Hide the small circle icon for lessons on mobile for a simplified list view */
+        .lesson-link>.flex>span:first-child {
+            display: none;
+        }
 
-  .lesson-link {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem;
-    background: #ffffff;
-    border: 1px solid #f1f1f1;
-    border-radius: 10px;
-    margin-bottom: 0.5rem;
-    text-decoration: none;
-    color: inherit;
-  }
+        /* Make lesson rows full-width simple rows like screenshot */
+        .module-accordion-content {
+            margin-top: 0.5rem;
+            padding-left: 0;
+        }
 
-  .lesson-link:hover { background: #f7f7f8; }
+        .lesson-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: #ffffff;
+            border: 1px solid #f1f1f1;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            text-decoration: none;
+            color: inherit;
+        }
 
-  .lesson-link .truncate { margin-left: 0; }
+        .lesson-link:hover {
+            background: #f7f7f8;
+        }
 
-  /* Selected lesson should appear highlighted */
-  .lesson-link.bg-white, .lesson-link.bg-white.dark\:bg-gray-900 {
-    background: #eef2f7; /* subtle selected tint */
-    border-color: rgba(59,130,246,0.12); /* primary tint */
-    box-shadow: none;
-  }
+        .lesson-link .truncate {
+            margin-left: 0;
+        }
 
-  /* make the "completed" / circle icons subdued at right */
-  .lesson-link i.fas.fa-check-circle, .lesson-link i.far.fa-circle {
-    margin-left: 0.5rem;
-    color: #9ca3af; /* gray-400 */
-    font-size: 1rem;
-  }
+        /* Selected lesson should appear highlighted */
+        .lesson-link.bg-white,
+        .lesson-link.bg-white.dark\:bg-gray-900 {
+            background: #eef2f7;
+            /* subtle selected tint */
+            border-color: rgba(59, 130, 246, 0.12);
+            /* primary tint */
+            box-shadow: none;
+        }
 
-  /* spacing adjustments inside sidebar header area (close button row) */
-  #lessonSidebar > .flex.items-center.justify-between.p-4.md\:hidden {
-    padding: 0.75rem 0.75rem;
-  }
+        /* make the "completed" / circle icons subdued at right */
+        .lesson-link i.fas.fa-check-circle,
+        .lesson-link i.far.fa-circle {
+            margin-left: 0.5rem;
+            color: #9ca3af;
+            /* gray-400 */
+            font-size: 1rem;
+        }
 
-  /* Ensure module list scrolls independently if tall */
-  #lessonSidebar .flex-grow.overflow-y-auto.p-4 {
-    max-height: calc(100vh - 120px);
-    overflow-y: auto;
-    padding: 0.75rem;
-  }
-}
+        /* spacing adjustments inside sidebar header area (close button row) */
+        #lessonSidebar>.flex.items-center.justify-between.p-4.md\:hidden {
+            padding: 0.75rem 0.75rem;
+        }
 
-/* ---------- IN-PAGE MOBILE MENU (NEW) ---------- */
-.mobile-lesson-menu { width: 100%; }
-.mobile-lesson-toggle {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #fff;
-  border: 1px solid #e6e6e6;
-  border-radius: 10px;
-  padding: .75rem 1rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-.mobile-lesson-toggle .title { font-weight: 600; }
-.mobile-lesson-list { margin-top: .75rem; display: none; }
-.mobile-lesson-list.open { display: block; }
+        /* Ensure module list scrolls independently if tall */
+        #lessonSidebar .flex-grow.overflow-y-auto.p-4 {
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            padding: 0.75rem;
+        }
+    }
 
-.mobile-module-card {
-  background: #fff;
-  border: 1px solid #e9e9ee;
-  border-radius: 10px;
-  padding: .9rem;
-  margin-bottom: .6rem;
-  box-shadow: none;
-}
-.mobile-module-card .module-head { display:flex; align-items:center; justify-content:space-between; gap:.6rem; cursor:pointer; }
-.mobile-module-card .module-head:hover { background: #f7f7f8; border-radius: 8px; }
-.mobile-module-card .module-lessons { margin-top:.6rem; padding-left:0; }
-.mobile-lesson-row {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:.9rem; background:#fff; border:1px solid #f2f2f4; border-radius:8px; margin-bottom:.5rem; text-decoration:none; color:inherit;
-}
-.mobile-lesson-row .meta { font-size:.9rem; color:#6b7280; }
+    /* ---------- IN-PAGE MOBILE MENU (NEW) ---------- */
+    .mobile-lesson-menu {
+        width: 100%;
+    }
 
-@media (min-width: 768px) {
-  /* hide the in-page mobile menu on larger screens */
-  .mobile-lesson-menu { display:none; }
-}
+    .mobile-lesson-toggle {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #fff;
+        border: 1px solid #e6e6e6;
+        border-radius: 10px;
+        padding: .75rem 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
 
-/* keep other existing desktop styles intact */
+    .mobile-lesson-toggle .title {
+        font-weight: 600;
+    }
+
+    .mobile-lesson-list {
+        margin-top: .75rem;
+        display: none;
+    }
+
+    .mobile-lesson-list.open {
+        display: block;
+    }
+
+    .mobile-module-card {
+        background: #fff;
+        border: 1px solid #e9e9ee;
+        border-radius: 10px;
+        padding: .9rem;
+        margin-bottom: .6rem;
+        box-shadow: none;
+    }
+
+    .mobile-module-card .module-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .6rem;
+        cursor: pointer;
+    }
+
+    .mobile-module-card .module-head:hover {
+        background: #f7f7f8;
+        border-radius: 8px;
+    }
+
+    .mobile-module-card .module-lessons {
+        margin-top: .6rem;
+        padding-left: 0;
+    }
+
+    .mobile-lesson-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: .9rem;
+        background: #fff;
+        border: 1px solid #f2f2f4;
+        border-radius: 8px;
+        margin-bottom: .5rem;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .mobile-lesson-row .meta {
+        font-size: .9rem;
+        color: #6b7280;
+    }
+
+    @media (min-width: 768px) {
+
+        /* hide the in-page mobile menu on larger screens */
+        .mobile-lesson-menu {
+            display: none;
+        }
+    }
+
+    /* keep other existing desktop styles intact */
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="flex flex-1 overflow-hidden">
-    <aside id="lessonSidebar" class="bg-gray-50 dark:bg-gray-800 w-72 flex-shrink-0 flex flex-col shadow-lg z-30 absolute inset-y-0 left-0 pt-16 md:pt-0 transform -translate-x-full md:static md:translate-x-0 transition-transform duration-300 h-full">
+    <aside id="lessonSidebar"
+        class="bg-gray-50 dark:bg-gray-800 w-72 flex-shrink-0 flex flex-col shadow-lg z-30 absolute inset-y-0 left-0 pt-16 md:pt-0 transform -translate-x-full md:static md:translate-x-0 transition-transform duration-300 h-full">
         <div class="flex items-center justify-between p-4 md:hidden border-b border-gray-200 dark:border-gray-700">
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white truncate" title="{{ lesson.module.course.title }}">{{ lesson.module.course.title }}</h2>
-            <button id="closeL2Sidebar" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded-md p-1"><i class="fas fa-times text-lg"></i></button>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white truncate"
+                title="{{ lesson.module.course.title }}">{{ lesson.module.course.title }}</h2>
+            <button id="closeL2Sidebar"
+                class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded-md p-1"><i
+                    class="fas fa-times text-lg"></i></button>
         </div>
         <div class="hidden md:flex items-center justify-between p-4 h-16 border-b border-gray-200 dark:border-gray-700">
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white truncate" title="{{ lesson.module.course.title }}">Course Content</h2>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white truncate"
+                title="{{ lesson.module.course.title }}">Course Content</h2>
         </div>
         <div id="lessonSidebarContent" class="flex-grow overflow-y-auto p-4">
             <div class="mb-6">
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ progress_percentage|default:0|floatformat:0 }}% completed</span>
-                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-2"><div id="course-progress-bar" class="bg-primary h-2.5 rounded-full transition-all" style="width: {{ progress_percentage|default:0 }}%"></div></div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-2">
+                    <div id="course-progress-bar" class="bg-primary h-2.5 rounded-full transition-all"
+                        style="width: {{ progress_percentage|default:0 }}%"></div>
+                </div>
             </div>
             <ul id="modules-container" class="space-y-4">
                 {% for module_item in all_course_modules %}
                 <li>
                     <div class="module-accordion-trigger flex items-center justify-between mb-2 p-3 {% if module_item.id == lesson.module.id %}bg-primary-light dark:bg-primary-dark{% else %}bg-gray-200 dark:bg-gray-700{% endif %} rounded-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800"
-                         tabindex="0" role="button"
-                         {% if module_item.id == lesson.module.id %} aria-expanded="true" {% else %} aria-expanded="false" {% endif %}
-                         aria-controls="module-{{ module_item.id }}"
-                         data-controls="module-{{ module_item.id }}">
+                        tabindex="0" role="button" aria-expanded="{% if module_item.id == lesson.module.id %}true{% else %}false{% endif %}" aria-controls="module-{{ module_item.id }}"
+                        data-controls="module-{{ module_item.id }}">
                         <span class="font-semibold {% if module_item.id == lesson.module.id %}text-primary-darker dark:text-white{% else %}text-gray-900 dark:text-white{% endif %}">{{ module_item.title }}</span>
-                        <i class="accordion-icon fas {% if module_item.id == lesson.module.id %}fa-chevron-up{% else %}fa-chevron-down{% endif %} text-gray-500 dark:text-gray-400 text-sm"></i>
+                        <i
+                            class="accordion-icon fas {% if module_item.id == lesson.module.id %}fa-chevron-up{% else %}fa-chevron-down{% endif %} text-gray-500 dark:text-gray-400 text-sm"></i>
                     </div>
-                    <ul id="module-{{ module_item.id }}" class="module-accordion-content space-y-2 {% if not module_item.id == lesson.module.id %}hidden{% endif %}">
+                    <ul id="module-{{ module_item.id }}"
+                        class="module-accordion-content space-y-2 {% if not module_item.id == lesson.module.id %}hidden{% endif %}">
                         {% for lesson_item in module_item.lessons.all %}
-                            <li>
-                                <a href="{% url 'lesson_detail' lesson_item.pk %}"
-                                   class="lesson-link flex items-center justify-between p-3 rounded-lg {% if lesson_item.id == lesson.id %}bg-white dark:bg-gray-900 border border-primary dark:border-primary-light shadow-sm{% else %}hover:bg-gray-200 dark:hover:bg-gray-700{% endif %} transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 group"
-                                   data-lesson-id="{{ lesson_item.id }}" data-module-id="{{ module_item.id }}">
-                                    <div class="flex items-center truncate">
-                                        <span class="flex items-center justify-center h-10 w-10 rounded-lg {% if lesson_item.id == lesson.id %}bg-primary-light dark:bg-primary-dark{% else %}bg-gray-200 dark:bg-gray-700{% endif %} flex-shrink-0">
-                                            {# Icon depends on lesson type #}
-                                            {% if lesson_item.videos.exists %}
-                                                <i class="fas fa-video {% if lesson_item.id == lesson.id %}text-primary-darker dark:text-primary-light{% else %}text-gray-600 dark:text-gray-300{% endif %}"></i>
-                                            {% elif lesson_item.pdf_file %}
-                                                <i class="fas fa-file-pdf {% if lesson_item.id == lesson.id %}text-primary-darker dark:text-primary-light{% else %}text-gray-600 dark:text-gray-300{% endif %}"></i>
-                                            {% else %}
-                                                <i class="fas fa-file-alt {% if lesson_item.id == lesson.id %}text-primary-darker dark:text-primary-light{% else %}text-gray-600 dark:text-gray-300{% endif %}"></i>
-                                            {% endif %}
-                                        </span>
-                                        <div class="ml-3 truncate">
-                                            <span class="block font-medium text-sm {% if lesson_item.id == lesson.id %}text-primary dark:text-primary-light{% else %}text-gray-800 dark:text-gray-300{% endif %} truncate group-hover:text-primary dark:group-hover:text-primary-light dark:hover:text-primary-light dark:text-primary-light dark:group-hover:text-primary-light transition-colors">{{ lesson_item.title }}</span>
-                                            <span class="block text-xs text-gray-500 dark:text-gray-400">Est. 5:00</span>
-                                        </div>
+                        <li>
+                            <a href="{% url 'lesson_detail' lesson_item.pk %}"
+                                class="lesson-link flex items-center justify-between p-3 rounded-lg {% if lesson_item.id == lesson.id %}bg-white dark:bg-gray-900 border border-primary dark:border-primary-light shadow-sm{% else %}hover:bg-gray-200 dark:hover:bg-gray-700{% endif %} transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 group"
+                                data-lesson-id="{{ lesson_item.id }}" data-module-id="{{ module_item.id }}">
+                                <div class="flex items-center truncate">
+                                    <span
+                                        class="flex items-center justify-center h-10 w-10 rounded-lg {% if lesson_item.id == lesson.id %}bg-primary-light dark:bg-primary-dark{% else %}bg-gray-200 dark:bg-gray-700{% endif %} flex-shrink-0">
+                                        {# Icon depends on lesson type #}
+                                        {% if lesson_item.videos.exists %}
+                                        <i
+                                            class="fas fa-video {% if lesson_item.id == lesson.id %}text-primary-darker dark:text-primary-light{% else %}text-gray-600 dark:text-gray-300{% endif %}"></i>
+                                        {% elif lesson_item.pdf_file %}
+                                        <i
+                                            class="fas fa-file-pdf {% if lesson_item.id == lesson.id %}text-primary-darker dark:text-primary-light{% else %}text-gray-600 dark:text-gray-300{% endif %}"></i>
+                                        {% else %}
+                                        <i
+                                            class="fas fa-file-alt {% if lesson_item.id == lesson.id %}text-primary-darker dark:text-primary-light{% else %}text-gray-600 dark:text-gray-300{% endif %}"></i>
+                                        {% endif %}
+                                    </span>
+                                    <div class="ml-3 truncate">
+                                        <span class="block font-medium text-sm {% if lesson_item.id == lesson.id %}text-primary dark:text-primary-light{% else %}text-gray-800 dark:text-gray-300{% endif %} truncate group-hover:text-primary dark:group-hover:text-primary-light dark:hover:text-primary-light dark:text-primary-light dark:group-hover:text-primary-light transition-colors">{{ lesson_item.title }}</span>
+                                        <span class="block text-xs text-gray-500 dark:text-gray-400">Est. 5:00</span>
                                     </div>
-                                    {% if lesson_item.id in read_lesson_ids %}
-                                        <i class="fas fa-check-circle text-green-500"></i>
-                                    {% else %}
-                                        <i class="far fa-circle text-gray-400 dark:text-gray-500"></i>
-                                    {% endif %}
-                                </a>
-                            </li>
+                                </div>
+                                {% if lesson_item.id in read_lesson_ids %}
+                                <i class="fas fa-check-circle text-green-500"></i>
+                                {% else %}
+                                <i class="far fa-circle text-gray-400 dark:text-gray-500"></i>
+                                {% endif %}
+                            </a>
+                        </li>
                         {% endfor %}
                     </ul>
                 </li>
@@ -294,7 +376,9 @@
         <main id="main-content" class="flex-1 overflow-y-auto p-3 sm:p-8 relative bg-white dark:bg-gray-900">
             <nav id="breadcrumb-nav" class="max-w-5xl mx-auto mb-4 sm:mb-6" aria-label="Breadcrumb">
                 <ol class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                    <li><a href="{% url 'home' %}" class="hover:text-gray-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-1"><i class="fas fa-home"></i></a></li>
+                    <li><a href="{% url 'home' %}"
+                            class="hover:text-gray-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-1"><i
+                                class="fas fa-home"></i></a></li>
                     <li><i class="fas fa-chevron-right text-xs text-gray-400 dark:text-gray-500"></i></li>
                     <li><a href="{% url 'courses' %}" class="hover:text-gray-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-1">{{ lesson.module.course.title }}</a></li>
                     <li><i class="fas fa-chevron-right text-xs text-gray-400 dark:text-gray-500"></i></li>
@@ -305,198 +389,236 @@
             </nav>
 
             <div class="mobile-lesson-menu md:hidden max-w-5xl mx-auto px-4 mb-4">
-              <button id="mobile-menu-toggle" aria-expanded="false" class="mobile-lesson-toggle">
-                <span class="menu-icon" aria-hidden="true"><i class="fas fa-bars"></i></span>
-                <span class="title">Course Content</span>
-                <i id="mobile-menu-icon" class="fas fa-chevron-down text-gray-500"></i>
-              </button>
-
-              <div id="mobile-menu-list" class="mobile-lesson-list">
-                {% for module_item in all_course_modules %}
-                  <div class="mobile-module-card" data-module-id="{{ module_item.id }}">
-                    <div class="module-head" data-controls="mobile-module-{{ module_item.id }}" tabindex="0" role="button" aria-expanded="{% if module_item.id == lesson.module.id %}true{% else %}false{% endif %}">
-                      <div class="font-semibold {% if module_item.id == lesson.module.id %}text-primary-darker{% else %}text-gray-900{% endif %}">{{ module_item.title }}</div>
-                      <i class="mobile-accordion-icon fas {% if module_item.id == lesson.module.id %}fa-chevron-up{% else %}fa-chevron-down{% endif %} text-gray-500"></i>
-                    </div>
-
-                    <ul id="mobile-module-{{ module_item.id }}" class="module-lessons {% if not module_item.id == lesson.module.id %}hidden{% endif %}">
-                      {% for lesson_item in module_item.lessons.all %}
-                        <li>
-                          <a href="{% url 'lesson_detail' lesson_item.pk %}" class="mobile-lesson-row" data-lesson-id="{{ lesson_item.id }}">
-                            <div>
-                              <div class="font-medium">{{ lesson_item.title }}</div>
-                              <div class="meta">Est. 5:00</div>
-                            </div>
-                            <div>
-                              {% if lesson_item.id in read_lesson_ids %}
-                                <i class="fas fa-check-circle text-green-500"></i>
-                              {% else %}
-                                <i class="far fa-circle text-gray-400"></i>
-                              {% endif %}
-                            </div>
-                          </a>
-                        </li>
-                      {% endfor %}
-                    </ul>
-                  </div>
-                {% endfor %}
-              </div>
-            </div>  
-
-            <div id="lesson-content-wrapper" class="max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden">
-                <div class="p-4 sm:p-8 border-b border-gray-200 dark:border-gray-700">
-                   <div class="p-4 sm:p-8 border-b border-gray-200 dark:border-gray-700">
-   <div class="p-2 sm:p-4 border-b border-gray-200 dark:border-gray-700">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-2">
-        <div>
-            <h1 class="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">{{ lesson.title }}</h1>
-        </div>
-
-        <hr class="border-gray-200 dark:border-gray-700 my-2 block sm:hidden">
-
-        <div class="w-full sm:w-auto flex justify-end sm:justify-start">
-            <div class="flex-shrink-0 flex flex-nowrap gap-2">
-                <form method="POST" action="{% url 'lesson_detail' lesson.pk %}">
-                    {% csrf_token %}
-                    {% if lesson.id in read_lesson_ids %}
-                        <button type="submit" name="unmark_read" data-action="toggle-complete" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-gray-800 dark:text-gray-100 font-medium text-xs py-1 px-2 sm:text-xs sm:py-2 sm:px-4 rounded-lg flex items-center transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800">
-                            <i class="fas fa-times mr-1 sm:mr-2"></i> <span class="sm:inline">Mark as Incomplete</span>
-                        </button>
-                    {% else %}
-                        <button type="submit" name="mark_read" data-action="toggle-complete" class="bg-green-600 hover:bg-green-700 text-white font-medium text-xs py-1 px-2 sm:text-xs sm:py-2 sm:px-4 rounded-lg flex items-center transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800">
-                            <i class="fas fa-check mr-1 sm:mr-2"></i> <span class="sm:inline">Mark as Complete</span>
-                        </button>
-                    {% endif %}
-                </form>
-                <button id="toggle-notes-btn" aria-expanded="false" class="text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 font-medium text-xs py-1 px-2 sm:text-xs sm:py-2 sm:px-4 rounded-lg flex items-center transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800">
-                    <i class="fas fa-sticky-note mr-1 sm:mr-2"></i> <span class="sm:inline">Notes</span>
+                <button id="mobile-menu-toggle" aria-expanded="false" class="mobile-lesson-toggle">
+                    <span class="menu-icon" aria-hidden="true"><i class="fas fa-bars"></i></span>
+                    <span class="title">Course Content</span>
+                    <i id="mobile-menu-icon" class="fas fa-chevron-down text-gray-500"></i>
                 </button>
+
+                <div id="mobile-menu-list" class="mobile-lesson-list">
+                    {% for module_item in all_course_modules %}
+                    <div class="mobile-module-card" data-module-id="{{ module_item.id }}">
+                        <div class="module-head" data-controls="mobile-module-{{ module_item.id }}" tabindex="0"
+                            role="button"
+                            aria-expanded="{% if module_item.id == lesson.module.id %}true{% else %}false{% endif %}">
+                            <div
+                                class="font-semibold {% if module_item.id == lesson.module.id %}text-primary-darker{% else %}text-gray-900{% endif %}">
+                                {{ module_item.title }}</div>
+                            <i
+                                class="mobile-accordion-icon fas {% if module_item.id == lesson.module.id %}fa-chevron-up{% else %}fa-chevron-down{% endif %} text-gray-500"></i>
+                        </div>
+
+                        <ul id="mobile-module-{{ module_item.id }}"
+                            class="module-lessons {% if not module_item.id == lesson.module.id %}hidden{% endif %}">
+                            {% for lesson_item in module_item.lessons.all %}
+                            <li>
+                                <a href="{% url 'lesson_detail' lesson_item.pk %}" class="mobile-lesson-row"
+                                    data-lesson-id="{{ lesson_item.id }}">
+                                    <div>
+                                        <div class="font-medium">{{ lesson_item.title }}</div>
+                                        <div class="meta">Est. 5:00</div>
+                                    </div>
+                                    <div>
+                                        {% if lesson_item.id in read_lesson_ids %}
+                                        <i class="fas fa-check-circle text-green-500"></i>
+                                        {% else %}
+                                        <i class="far fa-circle text-gray-400"></i>
+                                        {% endif %}
+                                    </div>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
-        </div>
-    </div>
-</div>
-</div>
+
+            <div id="lesson-content-wrapper"
+                class="max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700">
+                <div class="p-4 sm:p-6 lg:p-8 border-b border-gray-100 dark:border-gray-700">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-gray-900 dark:text-white">{{ lesson.title }}</h1>
+                        </div>
+
+                        <div class="w-full sm:w-auto flex items-center justify-start sm:justify-end">
+                            <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                                <form method="POST" action="{% url 'lesson_detail' lesson.pk %}"
+                                    class="flex-1 sm:flex-none">
+                                    {% csrf_token %}
+                                    {% if lesson.id in read_lesson_ids %}
+                                    <button type="submit" name="unmark_read" data-action="toggle-complete"
+                                        class="w-full sm:w-auto justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 text-gray-800 dark:text-gray-100 font-medium text-xs sm:text-sm py-1.5 sm:py-2 px-2.5 sm:px-4 whitespace-nowrap rounded-xl flex items-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 border border-gray-200 dark:border-gray-600">
+                                        <i class="fas fa-times mr-1.5 sm:mr-2"></i> <span>Mark as Incomplete</span>
+                                    </button>
+                                    {% else %}
+                                    <button type="submit" name="mark_read" data-action="toggle-complete"
+                                        class="w-full sm:w-auto justify-center bg-green-600 hover:bg-green-700 text-white font-medium text-xs sm:text-sm py-1.5 sm:py-2 px-2.5 sm:px-4 whitespace-nowrap rounded-xl flex items-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 shadow-sm">
+                                        <i class="fas fa-check mr-1.5 sm:mr-2"></i> <span>Mark as Complete</span>
+                                    </button>
+                                    {% endif %}
+                                </form>
+                                <button id="toggle-notes-btn" aria-expanded="false"
+                                    class="flex-1 sm:flex-none justify-center text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 font-medium text-xs sm:text-sm py-1.5 sm:py-2 px-2.5 sm:px-4 whitespace-nowrap rounded-xl flex items-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 border border-gray-200 dark:border-gray-600">
+                                    <i class="fas fa-sticky-note mr-1.5 sm:mr-2"></i> <span>Notes</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="p-4 sm:p-8 prose dark:prose-invert max-w-none">
                     {% if lesson.image_content %}
-                        <img src="{{ lesson.image_content.url }}" class="w-full rounded-lg shadow-md mb-6 max-h-96 object-contain mx-auto" alt="{{ lesson.title }}">
+                    <img src="{{ lesson.image_content.url }}"
+                        class="w-full rounded-lg shadow-md mb-6 max-h-96 object-contain mx-auto"
+                        alt="{{ lesson.title }}">
                     {% endif %}
                     {% if lesson.description %}
-                        <p class="text-gray-700 dark:text-gray-300 mb-6 italic bg-gray-100 dark:bg-gray-700 p-4 rounded-lg not-prose">📝 {{ lesson.description|safe }}</p>
+                    <h5 class="mb-4 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white not-prose">📝 Lesson
+                        Description</h5>
+                    <div
+                        class="text-gray-700 dark:text-gray-300 mb-6 bg-gray-50 dark:bg-gray-700/50 p-5 sm:p-6 rounded-xl border border-gray-100 dark:border-gray-600">
+                        {{ lesson.description|safe }}
+                    </div>
                     {% endif %}
 
                     {% if lesson.objectives %}
-                        <h5 class="mb-4 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white not-prose">🎯 Learning Objectives</h5>
-                        <ul class="list-disc pl-6 text-gray-800 dark:text-gray-200 mb-6 space-y-2">
-                            {% for objective in lesson.objectives.splitlines %}
-                                <li>{{ objective|safe }}</li>
-                            {% endfor %}
-                        </ul>
-                        <hr class="border-gray-200 dark:border-gray-700 my-6">
+                    <h5 class="mb-4 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white not-prose">🎯
+                        Learning Objectives</h5>
+                    <ul class="list-disc pl-6 text-gray-800 dark:text-gray-200 mb-6 space-y-2">
+                        {% for objective in lesson.objectives.splitlines %}
+                        <li>{{ objective|safe }}</li>
+                        {% endfor %}
+                    </ul>
+                    <hr class="border-gray-200 dark:border-gray-700 my-6">
                     {% endif %}
 
                     {% if lesson.content %}
-                        <h5 class="mb-4 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white not-prose">📖 Lesson Content</h5>
-                        <div class="text-gray-800 dark:text-gray-200 leading-relaxed">{{ lesson.content|safe }}</div>
-                        <hr class="border-gray-200 dark:border-gray-700 my-6">
+                    <h5 class="mb-4 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white not-prose">📖 Lesson
+                        Content</h5>
+                    <div class="text-gray-800 dark:text-gray-200 leading-relaxed">{{ lesson.content|safe }}</div>
+                    <hr class="border-gray-200 dark:border-gray-700 my-6">
                     {% endif %}
 
                     {# Video block (existing) #}
                     {% if lesson.videos.exists %}
-                        <h5 class="mb-4 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white not-prose">🎥 Watch Lesson</h5>
-                        {% for video in lesson.videos.all %}
-                            <p class="font-medium text-gray-800 dark:text-gray-100">{{ video.title }}</p>
-                            <div class="relative aspect-video mb-6 bg-gray-200 dark:bg-black rounded-lg overflow-hidden">
-                                {% with video.video_url|extract_video_id as video_id %}
-                                    {% if video_id %}
-                                        <iframe src="https://www.youtube.com/embed/{{ video_id }}" allowfullscreen class="absolute top-0 left-0 w-full h-full" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-                                    {% else %}
-                                        <p class="p-4 text-red-600">Could not extract video ID from URL: {{ video.video_url }}</p>
-                                    {% endif %}
-                                {% endwith %}
-                            </div>
-                        {% endfor %}
-                        <hr class="border-gray-200 dark:border-gray-700 my-6">
+                    <h5 class="mb-4 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white not-prose">🎥 Watch
+                        Tutorial</h5>
+                    {% for video in lesson.videos.all %}
+                    <p class="font-medium text-gray-800 dark:text-gray-100">{{ video.title }}</p>
+                    <div class="relative aspect-video mb-6 bg-gray-200 dark:bg-black rounded-lg overflow-hidden">
+                        {% with video.video_url|extract_video_id as video_id %}
+                        {% if video_id %}
+                        <iframe src="https://www.youtube.com/embed/{{ video_id }}" allowfullscreen
+                            class="absolute top-0 left-0 w-full h-full"
+                            referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                        {% else %}
+                        <p class="p-4 text-red-600">Could not extract video ID from URL: {{ video.video_url }}</p>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                    {% endfor %}
+                    <hr class="border-gray-200 dark:border-gray-700 my-6">
                     {% endif %}
 
                     {# PDF viewer block: page-by-page rendering with PDF.js (no direct download link) #}
                     {% if lesson.pdf_file %}
-                        <h5 class="mb-4 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white not-prose">📄 PDF</h5>
-                        <div class="pdf-controls flex flex-nowrap items-center justify-between gap-1 sm:gap-2 mb-3 text-gray-800 dark:text-gray-200">
-  <div class="flex items-center flex-nowrap gap-1 sm:gap-2">
-    <button id="pdf-prev" title="Previous page" class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200">&larr;</button>
-    <button id="pdf-next" title="Next page" class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200">&rarr;</button>
+                    <h5 class="mb-4 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white not-prose">📄 PDF
+                    </h5>
+                    <div
+                        class="pdf-controls flex flex-nowrap items-center justify-between gap-1 sm:gap-2 mb-3 text-gray-800 dark:text-gray-200">
+                        <div class="flex items-center flex-nowrap gap-1 sm:gap-2">
+                            <button id="pdf-prev" title="Previous page"
+                                class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200">&larr;</button>
+                            <button id="pdf-next" title="Next page"
+                                class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200">&rarr;</button>
 
-    <span class="text-sm"><span class="hidden sm:inline">Page </span><strong id="pdf-page-num">1</strong> / <strong id="pdf-page-count">19</strong></span>
+                            <span class="text-sm"><span class="hidden sm:inline">Page </span><strong
+                                    id="pdf-page-num">1</strong> / <strong id="pdf-page-count">19</strong></span>
 
-    <input id="pdf-page-input" type="number" min="1" value="1"
-      class="w-12 px-2 py-1 text-center border border-gray-300 rounded text-sm" aria-label="Jump to page">
-    <button id="pdf-go" title="Go to page" class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200"><i class="fas fa-check"></i></button>
-  </div>
-
-  <div class="flex items-center gap-1 sm:gap-2">
-    <button id="pdf-zoom-out" title="Zoom out" class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200">−</button>
-    <button id="pdf-zoom-in" title="Zoom in" class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200">+</button>
-  </div>
-</div>
-
-
-                                <div class="flex justify-center items-center my-4">
-                            <div id="pdf-canvas-wrap" class="rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 p-2 sm:p-4">
-                                <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
-                            </div>
-                            </div>
-
+                            <input id="pdf-page-input" type="number" min="1" value="1"
+                                class="w-12 px-2 py-1 text-center border border-gray-300 rounded text-sm"
+                                aria-label="Jump to page">
+                            <button id="pdf-go" title="Go to page"
+                                class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200"><i
+                                    class="fas fa-check"></i></button>
                         </div>
-                        <hr class="border-gray-200 dark:border-gray-700 my-6">
-                    {% endif %}
 
-                    {% if lesson.additional_materials.exists %}
-                        <h5 class="mb-4 ml-6 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white not-prose">📎 Additional Materials</h5>
-                        <div class="flex flex-wrap gap-3">
-                        {% for material in lesson.additional_materials.all %}
-                            <a href="{{ material.material_url }}" target="_blank" class="inline-block px-3 py-1.5 sm:px-4 sm:py-2 ml-4 sm:ml-6 bg-green-500 text-white rounded-md shadow hover:bg-green-600 transition duration-300 mb-2 text-xs sm:text-sm no-underline">
-                                <i class="fas fa-link mr-1"></i> {{ material.title }}
-                            </a>
-                        {% endfor %}
+                        <div class="flex items-center gap-1 sm:gap-2">
+                            <button id="pdf-zoom-out" title="Zoom out"
+                                class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200">−</button>
+                            <button id="pdf-zoom-in" title="Zoom in"
+                                class="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200">+</button>
                         </div>
-                        <hr class="border-gray-200 dark:border-gray-700 my-6">
-                    {% endif %}
-                </div>
+                    </div>
 
-                <div class="flex justify-between mt-0 p-4 sm:p-8 border-t border-gray-200 dark:border-gray-700">
-                    {% if previous_lesson %}
-                    <a href="{% url 'lesson_detail' previous_lesson.pk %}" id="prev-lesson-btn" class="flex items-center text-primary dark:text-primary-light hover:text-primary-dark font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-2">
-                        <i class="fas fa-chevron-left mr-2"></i> Previous
-                    </a>
-                    {% else %}
-                    <button id="prev-lesson-btn" class="flex items-center text-gray-400 dark:text-gray-600 font-semibold cursor-not-allowed p-2" disabled>
-                        <i class="fas fa-chevron-left mr-2"></i> Previous
-                    </button>
-                    {% endif %}
 
-                    {% if next_lesson %}
-                    <a href="{% url 'lesson_detail' next_lesson.pk %}" id="next-lesson-btn" class="flex items-center text-primary dark:text-primary-light hover:text-primary-dark font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-2">
-                        Next Lesson <i class="fas fa-chevron-right ml-2"></i>
-                    </a>
-                    {% else %}
-                        {% with quiz=lesson.module.quizzes.first %}
-                            {% if quiz %}
-                                <a href="{% url 'quiz_detail' quiz.id %}" id="next-lesson-btn" class="flex items-center bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded p-2 px-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-yellow-500 dark:focus-visible:ring-offset-gray-800">
-                                    Take Quiz <i class="fas fa-question-circle ml-2"></i>
-                                </a>
-                            {% else %}
-                                <button id="next-lesson-btn" class="flex items-center text-gray-400 dark:text-gray-600 font-semibold cursor-not-allowed p-2" disabled>
-                                    Next Lesson <i class="fas fa-chevron-right ml-2"></i>
-                                </button>
-                            {% endif %}
-                        {% endwith %}
-                    {% endif %}
+                    <div class="flex justify-center items-center my-4">
+                        <div id="pdf-canvas-wrap"
+                            class="rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 p-2 sm:p-4">
+                            <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
+                        </div>
+                    </div>
+
                 </div>
+                <hr class="border-gray-200 dark:border-gray-700 my-6">
+                {% endif %}
+
+                {% if lesson.additional_materials.exists %}
+                <h5 class="mb-4 ml-6 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white not-prose">📎
+                    Additional Materials</h5>
+                <div class="flex flex-wrap gap-3">
+                    {% for material in lesson.additional_materials.all %}
+                    <a href="{{ material.material_url }}" target="_blank"
+                        class="inline-block px-3 py-1.5 sm:px-4 sm:py-2 ml-4 sm:ml-6 bg-green-500 text-white rounded-md shadow hover:bg-green-600 transition duration-300 mb-2 text-xs sm:text-sm no-underline">
+                        <i class="fas fa-link mr-1"></i> {{ material.title }}
+                    </a>
+                    {% endfor %}
+                </div>
+                <hr class="border-gray-200 dark:border-gray-700 my-6">
+                {% endif %}
             </div>
-        </main>
+
+            <div class="flex justify-between mt-0 p-4 sm:p-8 border-t border-gray-200 dark:border-gray-700">
+                {% if previous_lesson %}
+                <a href="{% url 'lesson_detail' previous_lesson.pk %}" id="prev-lesson-btn"
+                    class="flex items-center text-primary dark:text-primary-light hover:text-primary-dark font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-2">
+                    <i class="fas fa-chevron-left mr-2"></i> Previous
+                </a>
+                {% else %}
+                <button id="prev-lesson-btn"
+                    class="flex items-center text-gray-400 dark:text-gray-600 font-semibold cursor-not-allowed p-2"
+                    disabled>
+                    <i class="fas fa-chevron-left mr-2"></i> Previous
+                </button>
+                {% endif %}
+
+                {% if next_lesson %}
+                <a href="{% url 'lesson_detail' next_lesson.pk %}" id="next-lesson-btn"
+                    class="flex items-center text-primary dark:text-primary-light hover:text-primary-dark font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary dark:focus-visible:ring-offset-gray-800 rounded p-2">
+                    Next Lesson <i class="fas fa-chevron-right ml-2"></i>
+                </a>
+                {% else %}
+                {% with quiz=lesson.module.quizzes.first %}
+                {% if quiz %}
+                <a href="{% url 'quiz_detail' quiz.id %}" id="next-lesson-btn"
+                    class="flex items-center bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded p-2 px-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-yellow-500 dark:focus-visible:ring-offset-gray-800">
+                    Take Quiz <i class="fas fa-question-circle ml-2"></i>
+                </a>
+                {% else %}
+                <button id="next-lesson-btn"
+                    class="flex items-center text-gray-400 dark:text-gray-600 font-semibold cursor-not-allowed p-2"
+                    disabled>
+                    Next Lesson <i class="fas fa-chevron-right ml-2"></i>
+                </button>
+                {% endif %}
+                {% endwith %}
+                {% endif %}
+            </div>
     </div>
+    </main>
+</div>
 </div>
 {% endblock %}
 
@@ -555,31 +677,31 @@
         const mmIcon = document.getElementById('mobile-menu-icon');
 
         if (mmToggle && mmList) {
-          mmToggle.addEventListener('click', function(){
-            const open = mmList.classList.toggle('open');
-            mmToggle.setAttribute('aria-expanded', String(open));
-            mmIcon.classList.toggle('fa-chevron-down', !open);
-            mmIcon.classList.toggle('fa-chevron-up', open);
-          });
-          mmToggle.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mmToggle.click(); } });
+            mmToggle.addEventListener('click', function () {
+                const open = mmList.classList.toggle('open');
+                mmToggle.setAttribute('aria-expanded', String(open));
+                mmIcon.classList.toggle('fa-chevron-down', !open);
+                mmIcon.classList.toggle('fa-chevron-up', open);
+            });
+            mmToggle.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mmToggle.click(); } });
         }
 
         // module accordion inside mobile list
         document.querySelectorAll('.mobile-module-card .module-head').forEach(head => {
-          head.addEventListener('click', () => {
-            const targetId = head.getAttribute('data-controls') || head.dataset.controls;
-            const list = document.getElementById(targetId);
-            if (!list) return;
-            const isHidden = list.classList.contains('hidden');
-            list.classList.toggle('hidden', !isHidden);
-            head.setAttribute('aria-expanded', String(isHidden));
-            const icon = head.querySelector('.mobile-accordion-icon');
-            if (icon) {
-              icon.classList.toggle('fa-chevron-up', isHidden);
-              icon.classList.toggle('fa-chevron-down', !isHidden);
-            }
-          });
-          head.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); head.click(); } });
+            head.addEventListener('click', () => {
+                const targetId = head.getAttribute('data-controls') || head.dataset.controls;
+                const list = document.getElementById(targetId);
+                if (!list) return;
+                const isHidden = list.classList.contains('hidden');
+                list.classList.toggle('hidden', !isHidden);
+                head.setAttribute('aria-expanded', String(isHidden));
+                const icon = head.querySelector('.mobile-accordion-icon');
+                if (icon) {
+                    icon.classList.toggle('fa-chevron-up', isHidden);
+                    icon.classList.toggle('fa-chevron-down', !isHidden);
+                }
+            });
+            head.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); head.click(); } });
         });
 
         // Notes panel logic
@@ -709,24 +831,24 @@
             if (!canvas || !wrap) return;
             const ctx = canvas.getContext('2d');
 
-            const pageNumEl  = document.getElementById('pdf-page-num');
+            const pageNumEl = document.getElementById('pdf-page-num');
             const pageCountEl = document.getElementById('pdf-page-count');
-            const pageInput  = document.getElementById('pdf-page-input');
-            const prevBtn    = document.getElementById('pdf-prev');
-            const nextBtn    = document.getElementById('pdf-next');
-            const goBtn      = document.getElementById('pdf-go');
-            const zoomIn     = document.getElementById('pdf-zoom-in');
-            const zoomOut    = document.getElementById('pdf-zoom-out');
+            const pageInput = document.getElementById('pdf-page-input');
+            const prevBtn = document.getElementById('pdf-prev');
+            const nextBtn = document.getElementById('pdf-next');
+            const goBtn = document.getElementById('pdf-go');
+            const zoomIn = document.getElementById('pdf-zoom-in');
+            const zoomOut = document.getElementById('pdf-zoom-out');
 
-            let pdfDoc      = null;
+            let pdfDoc = null;
             let currentPage = 1;
-            let scale       = 1.0;
-            let isFitMode   = true;
-            let renderTask  = null;
+            let scale = 1.0;
+            let isFitMode = true;
+            let renderTask = null;
 
             const SCALE_STEP = 0.15;
-            const MIN_SCALE  = 0.5;
-            const MAX_SCALE  = 6.0;
+            const MIN_SCALE = 0.5;
+            const MAX_SCALE = 6.0;
             const DPR = Math.max(1, window.devicePixelRatio || 1);
 
             function computeFitScale(page) {
@@ -744,17 +866,17 @@
                     const page = await pdfDoc.getPage(num);
                     if (isFitMode) scale = computeFitScale(page);
                     const viewport = page.getViewport({ scale });
-                    canvas.width  = Math.round(viewport.width * DPR);
+                    canvas.width = Math.round(viewport.width * DPR);
                     canvas.height = Math.round(viewport.height * DPR);
-                    canvas.style.width  = Math.round(viewport.width) + 'px';
+                    canvas.style.width = Math.round(viewport.width) + 'px';
                     canvas.style.height = Math.round(viewport.height) + 'px';
                     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     renderTask = page.render({ canvasContext: ctx, viewport, intent: 'display' });
                     await renderTask.promise;
                     renderTask = null;
-                    pageNumEl.textContent  = currentPage;
-                    pageInput.value        = currentPage;
+                    pageNumEl.textContent = currentPage;
+                    pageInput.value = currentPage;
                     pageCountEl.textContent = pdfDoc.numPages;
                     prevBtn.disabled = currentPage <= 1;
                     nextBtn.disabled = currentPage >= pdfDoc.numPages;
@@ -793,23 +915,23 @@
 
             prevBtn && prevBtn.addEventListener('click', () => queueRenderPage(currentPage - 1));
             nextBtn && nextBtn.addEventListener('click', () => queueRenderPage(currentPage + 1));
-            goBtn   && goBtn.addEventListener('click', () => { const v = parseInt(pageInput.value, 10); if (!isNaN(v)) queueRenderPage(v); });
+            goBtn && goBtn.addEventListener('click', () => { const v = parseInt(pageInput.value, 10); if (!isNaN(v)) queueRenderPage(v); });
             pageInput && pageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); goBtn.click(); } });
-            zoomIn  && zoomIn.addEventListener('click', () => { isFitMode = false; scale = Math.min(MAX_SCALE, +(scale + SCALE_STEP).toFixed(3)); queueRenderPage(currentPage); });
+            zoomIn && zoomIn.addEventListener('click', () => { isFitMode = false; scale = Math.min(MAX_SCALE, +(scale + SCALE_STEP).toFixed(3)); queueRenderPage(currentPage); });
             zoomOut && zoomOut.addEventListener('click', () => { isFitMode = false; scale = Math.max(MIN_SCALE, +(scale - SCALE_STEP).toFixed(3)); queueRenderPage(currentPage); });
 
             document.addEventListener('keydown', (e) => {
                 if (/input|textarea/i.test(document.activeElement.tagName)) return;
-                if (e.key === 'ArrowLeft')          { e.preventDefault(); prevBtn && prevBtn.click(); }
-                if (e.key === 'ArrowRight')         { e.preventDefault(); nextBtn && nextBtn.click(); }
-                if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomIn  && zoomIn.click(); }
-                if (e.key === '-')                  { e.preventDefault(); zoomOut && zoomOut.click(); }
+                if (e.key === 'ArrowLeft') { e.preventDefault(); prevBtn && prevBtn.click(); }
+                if (e.key === 'ArrowRight') { e.preventDefault(); nextBtn && nextBtn.click(); }
+                if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomIn && zoomIn.click(); }
+                if (e.key === '-') { e.preventDefault(); zoomOut && zoomOut.click(); }
             });
 
             // Touch swipe
             let touchStartX = 0;
             wrap.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
-            wrap.addEventListener('touchend',   (e) => {
+            wrap.addEventListener('touchend', (e) => {
                 const dx = e.changedTouches[0].clientX - touchStartX;
                 if (Math.abs(dx) > 50) { if (dx < 0) nextBtn && nextBtn.click(); else prevBtn && prevBtn.click(); }
             }, { passive: true });
