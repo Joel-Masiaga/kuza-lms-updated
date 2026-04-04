@@ -19,6 +19,7 @@ class Course(models.Model):
         ('python_programming', 'Python Programming'),
         ('data_science', 'Data Science'),
         ('django_framework', 'Django Framework'),
+        ('medical_innovation', 'Medical Innovation'),
     ]
 
     title = models.CharField(max_length=200)
